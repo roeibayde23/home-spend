@@ -10,62 +10,50 @@ const ROOMS=[
  {id:'bath',   name:'אמבטיה',x:5,z:4,w:5,d:4,floor:'#dfe6e4'}];
 const WALL_H=2.6, WALL_T=0.12, CX=5, CZ=4;
 
+const NX=10,NZ=8;
+const PAL=[{wall:'#efe3cf',floor:'#b98d63'},{wall:'#d3dfcc',floor:'#d8cfbf'},{wall:'#e4d2bd',floor:'#c7a27c'},{wall:'#cddde3',floor:'#e9e2d6'},{wall:'#e8d6d9',floor:'#bfa58a'},{wall:'#dcd6e6',floor:'#d3c0a4'}];
 const stage=document.getElementById('stage');
 const renderer=new THREE.WebGLRenderer({antialias:true});
 renderer.setPixelRatio(Math.min(devicePixelRatio,2));
 renderer.shadowMap.enabled=true; renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+renderer.toneMapping=THREE.ACESFilmicToneMapping; renderer.toneMappingExposure=1.05;
+renderer.outputColorSpace=THREE.SRGBColorSpace;
 stage.appendChild(renderer.domElement);
-const scene=new THREE.Scene(); scene.background=new THREE.Color('#f4efe6');
-scene.fog=new THREE.Fog('#f4efe6',30,60);
+const scene=new THREE.Scene(); scene.background=new THREE.Color('#efe8dc');
+scene.fog=new THREE.Fog('#efe8dc',35,70);
 const cam=new THREE.PerspectiveCamera(45,1,0.1,200);
-const HOME_POS=(innerWidth<innerHeight?new THREE.Vector3(12,17,19):new THREE.Vector3(9,11,13));
-cam.position.copy(HOME_POS);
-
-scene.add(new THREE.HemisphereLight('#fffaf0','#d8cdb8',1.1));
-const sun=new THREE.DirectionalLight('#fff4e0',1.4);
-sun.position.set(8,14,6); sun.castShadow=true; sun.shadow.mapSize.set(2048,2048);
-Object.assign(sun.shadow.camera,{left:-10,right:10,top:10,bottom:-10}); scene.add(sun);
-
-// ground
-const ground=new THREE.Mesh(new THREE.CircleGeometry(30,64),new THREE.MeshStandardMaterial({color:'#e9e2d3'}));
+scene.add(new THREE.HemisphereLight('#fff8ec','#cbbfa8',0.9));
+scene.add(new THREE.AmbientLight('#ffffff',0.15));
+const sun=new THREE.DirectionalLight('#ffe9c8',1.9);
+sun.position.set(7,15,9); sun.castShadow=true; sun.shadow.mapSize.set(2048,2048); sun.shadow.bias=-0.0005; sun.shadow.normalBias=0.02;
+Object.assign(sun.shadow.camera,{left:-9,right:9,top:9,bottom:-9}); scene.add(sun);
+const fill=new THREE.DirectionalLight('#dfe8ff',0.35); fill.position.set(-8,6,-6); scene.add(fill);
+const ground=new THREE.Mesh(new THREE.CircleGeometry(30,64),new THREE.MeshStandardMaterial({color:'#e4dccb',roughness:1}));
 ground.rotation.x=-Math.PI/2; ground.position.y=-0.02; ground.receiveShadow=true; scene.add(ground);
-
 const house=new THREE.Group(); house.position.set(-CX,0,-CZ); scene.add(house);
-for(const r of ROOMS){
-  const f=new THREE.Mesh(new THREE.BoxGeometry(r.w,0.05,r.d),new THREE.MeshStandardMaterial({color:r.floor,roughness:.9}));
-  f.position.set(r.x+r.w/2,0.025,r.z+r.d/2); f.receiveShadow=true; house.add(f);
-}
-const wallMat=new THREE.MeshStandardMaterial({color:'#f7f1e6',roughness:.95});
-const capMat=new THREE.MeshStandardMaterial({color:'#b9a98f'});
-function wall(x1,z1,x2,z2,h=WALL_H){
-  const len=Math.hypot(x2-x1,z2-z1)+WALL_T;
-  const m=new THREE.Mesh(new THREE.BoxGeometry(len,h,WALL_T),wallMat);
-  m.position.set((x1+x2)/2,h/2,(z1+z2)/2); m.rotation.y=-Math.atan2(z2-z1,x2-x1);
-  m.castShadow=m.receiveShadow=true; house.add(m);
-  const c=new THREE.Mesh(new THREE.BoxGeometry(len,0.03,WALL_T+0.01),capMat);
-  c.position.set(m.position.x,h+0.015,m.position.z); c.rotation.y=m.rotation.y; house.add(c);
-}
-// segments with door gaps (gap of 0.9m)
-const segs=[
- [0,0,10,0],[0,8,10,8],[0,0,0,8],[10,0,10,8],          // outer
- [0,4,2,4],[2.9,4,5,4],[5,4,7,4],[7.9,4,10,4],          // middle horizontal w/ doors
- [5,0,5,1.6],[5,2.5,5,4],[5,4,5,8]];                    // middle vertical w/ door living↔kitchen
-segs.forEach(s=>wall(...s));
+const struct=new THREE.Group(); house.add(struct);
+// grid overlay for build mode
+const grid=new THREE.GridHelper(10,10,'#8a7a60','#8a7a60'); grid.scale.set(1,1,0.8); grid.position.set(5,0.07,4);
+grid.material.transparent=true; grid.material.opacity=.35; grid.visible=false; house.add(grid);
 
+// camera fit: house bigger in frame (portrait looks along the short side)
+function homeView(){const a=cam.aspect||innerWidth/innerHeight,vt=Math.tan(THREE.MathUtils.degToRad(22.5)),ht=vt*a;
+ const portrait=a<0.9;const dir=portrait?new THREE.Vector3(0.95,1.25,0.32):new THREE.Vector3(0.75,1.05,1);dir.normalize();
+ const hw=portrait?6.3:6.8,hh=portrait?4.4:4.2;const dist=Math.max(hw/ht,hh/vt)*1.02;
+ return {pos:dir.multiplyScalar(dist),target:new THREE.Vector3(0,0.3,0)}}
 const ctl=new OrbitControls(cam,renderer.domElement);
 ctl.enableDamping=true; ctl.dampingFactor=.08;
-ctl.minDistance=4; ctl.maxDistance=40; ctl.maxPolarAngle=Math.PI/2-0.05;
-ctl.screenSpacePanning=false; ctl.target.set(0,0.5,0);
+ctl.minDistance=3; ctl.maxDistance=45; ctl.maxPolarAngle=Math.PI/2-0.05;
+ctl.screenSpacePanning=false;
 ctl.touches={ONE:THREE.TOUCH.ROTATE,TWO:THREE.TOUCH.DOLLY_PAN};
-
 function resize(){const w=innerWidth,h=innerHeight;renderer.setSize(w,h);cam.aspect=w/h;cam.updateProjectionMatrix()}
 addEventListener('resize',resize); resize();
+function resetCam(){const v=homeView();cam.position.copy(v.pos);ctl.target.copy(v.target);ctl.update()}
+resetCam();
 renderer.setAnimationLoop(()=>{ctl.update();renderer.render(scene,cam)});
-
-document.getElementById('resetCam').onclick=()=>{cam.position.copy(HOME_POS);ctl.target.set(0,0.5,0)};
+document.getElementById('resetCam').onclick=resetCam;
 setTimeout(()=>document.getElementById('hint').style.opacity=0,6000);
-
-// ===== Stage 2: furniture + build + undo =====
+// ===== Stage 2+3: data, structure, furniture, build, undo =====
 // Saved gx/gy are old-grid units (house 0..9 × 0..9) → meters x=gx*10/9, z=gy*8/9
 const SX=10/9, SZ=8/9;
 const seedP=()=>[
@@ -75,44 +63,119 @@ const seedP=()=>[
  {id:4,name:'שולחן אוכל',price:6200,date:'2026-08-11',room:'kitchen',icon:'🍽️',gx:7.6,gy:2.2},
  {id:5,name:'מיטה זוגית',price:14900,date:'2026-06-30',room:'bed',icon:'🛏️',gx:2,gy:6.6},
  {id:6,name:'מכונת כביסה',price:9990,date:'2026-09-01',room:'bath',icon:'🧺',gx:6.4,gy:6.6}];
+// walls = unit grid edges {x1,z1,x2,z2} in meters; door gaps = missing edges
+function defaultWalls(){const W=[];const h=(z,x)=>W.push({x1:x,z1:z,x2:x+1,z2:z}),v=(x,z)=>W.push({x1:x,z1:z,x2:x,z2:z+1});
+ for(let x=0;x<NX;x++){h(0,x);h(NZ,x);h(4,x)}
+ for(let z=0;z<NZ;z++){v(0,z);v(NX,z);v(5,z)}return W}
+const defaultRooms=()=>ROOMS.map((r,i)=>({id:r.id,name:r.name,ax:r.x+1,az:r.z+1,wall:PAL[i].wall,floor:PAL[i].floor}));
 let S;try{S=JSON.parse(localStorage.getItem(KEY))}catch(e){}
 if(!S||typeof S!=='object')S={};
 if(!Array.isArray(S.products))S.products=seedP();
+if(!Array.isArray(S.walls)){S.walls=defaultWalls();S.rooms=defaultRooms()}   // migrate fixed house
+if(!Array.isArray(S.rooms))S.rooms=defaultRooms();
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
-save();
 const kc=n=>(+n||0).toLocaleString('cs-CZ').replace(/\s/g,',')+' Kč';
 const esc=t=>String(t??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const roomAtM=(x,z)=>ROOMS.find(r=>x>=r.x&&x<r.x+r.w&&z>=r.z&&z<r.z+r.d)||null;
-const roomName=p=>(roomAtM(p.gx*SX,p.gy*SZ)||ROOMS.find(r=>r.id===p.room)||{name:'—'}).name;
-const SIZE={'📺':[1.2,.7,.25],'🛋️':[2,.8,.9],'🧊':[.7,1.8,.7],'🍽️':[1.4,.75,.9],'🛏️':[1.6,.5,2],'🧺':[.6,.85,.6]};
-const COL={'📺':'#4a4f55','🛋️':'#8fa88a','🧊':'#dfe3e2','🍽️':'#a07a55','🛏️':'#c9b8a0','🧺':'#e8e8e6'};
-const texCache={};
-function emojiTex(e){if(texCache[e])return texCache[e];const c=document.createElement('canvas');c.width=c.height=96;const g=c.getContext('2d');
- g.fillStyle='rgba(255,250,242,.92)';g.beginPath();g.arc(48,48,44,0,7);g.fill();g.font='60px serif';g.textAlign='center';g.textBaseline='middle';g.fillText(e,48,54);
- return texCache[e]=new THREE.CanvasTexture(c)}
+const ek=w=>{const a=w.x1+','+w.z1,b=w.x2+','+w.z2;return a<b?a+'|'+b:b+'|'+a};
+
+// ---- rooms: flood-fill cells bounded by walls; regions leaking outside grid = not a room ----
+let CELL=[];   // CELL[z][x] = room or null
+function regions(){const K=new Set(S.walls.map(ek));const has=(x1,z1,x2,z2)=>K.has(ek({x1,z1,x2,z2}));
+ const seen=[...Array(NZ)].map(()=>Array(NX).fill(false));const regs=[];
+ for(let z0=0;z0<NZ;z0++)for(let x0=0;x0<NX;x0++){if(seen[z0][x0])continue;const cells=[],q=[[x0,z0]];seen[z0][x0]=true;let leak=false;
+  while(q.length){const [x,z]=q.pop();cells.push([x,z]);
+   const nb=[[x+1,z,has(x+1,z,x+1,z+1)],[x-1,z,has(x,z,x,z+1)],[x,z+1,has(x,z+1,x+1,z+1)],[x,z-1,has(x,z,x+1,z)]];
+   for(const [nx,nz,blk] of nb){if(blk)continue;if(nx<0||nz<0||nx>=NX||nz>=NZ){leak=true;continue}if(!seen[nz][nx]){seen[nz][nx]=true;q.push([nx,nz])}}}
+  regs.push({cells,leak})}
+ const used=new Set(),rooms=[];CELL=[...Array(NZ)].map(()=>Array(NX).fill(null));
+ const closed=regs.filter(r=>!r.leak);
+ const pending=[];
+ for(const r of closed){const inR=new Set(r.cells.map(c=>c+''));const m=S.rooms.find(o=>!used.has(o.id)&&inR.has(Math.floor(o.ax)+','+Math.floor(o.az)));
+  if(m){used.add(m.id);r.room=m;rooms.push(m)}else pending.push(r)}
+ for(const r of pending){const k=rooms.length+1;const c=r.cells[0];const p=PAL[(rooms.length)%PAL.length];
+  r.room={id:'r'+Date.now().toString(36)+k,name:'חדר '+k,ax:c[0]+.5,az:c[1]+.5,wall:p.wall,floor:p.floor};rooms.push(r.room)}
+ for(const r of closed){r.room.cells=r.cells.length;let sx=0,sz=0;r.cells.forEach(([x,z])=>{CELL[z][x]=r.room;sx+=x;sz+=z});
+  r.room.cx=sx/r.cells.length+.5;r.room.cz=sz/r.cells.length+.5}
+ S.rooms=rooms.map(({cells,cx,cz,...o})=>o);ROOMS_NOW=rooms;fillRoomSel()}
+let ROOMS_NOW=[];
+const roomAtM=(x,z)=>{const cx=Math.floor(x),cz=Math.floor(z);return (CELL[cz]&&CELL[cz][cx])||null};
+const roomName=p=>(roomAtM(p.gx*SX,p.gy*SZ)||ROOMS_NOW.find(r=>r.id===p.room)||{name:'—'}).name;
+
+// ---- structure meshes ----
+const matC={};const mat=(c,o={})=>{const k=c+JSON.stringify(o);return matC[k]||(matC[k]=new THREE.MeshStandardMaterial({color:c,roughness:.9,...o}))};
+const capMat=mat('#a8977c');
+function buildStruct(){struct.clear();
+ const tile=new THREE.BoxGeometry(1,0.05,1);
+ for(let z=0;z<NZ;z++)for(let x=0;x<NX;x++){const r=CELL[z][x];
+  // subtle checker tone difference inside rooms
+  const base=new THREE.Color(r?r.floor:'#d6cfbf');if((x+z)%2)base.offsetHSL(0,0,-0.025);
+  const m=new THREE.Mesh(tile,mat('#'+base.getHexString(),{roughness:.85}));m.position.set(x+.5,0.025,z+.5);m.receiveShadow=true;struct.add(m)}
+ for(const w of S.walls){const hz=w.z1===w.z2;
+  const A=hz?(CELL[w.z1-1]||[])[w.x1]:(CELL[w.z1]||[])[w.x1-1], B=hz?(CELL[w.z1]||[])[w.x1]:(CELL[w.z1]||[])[w.x1];
+  const len=1+WALL_T*.5;
+  [[A,-1],[B,1]].forEach(([r,sg])=>{const g=hz?new THREE.BoxGeometry(len,WALL_H,WALL_T/2):new THREE.BoxGeometry(WALL_T/2,WALL_H,len);
+   const m=new THREE.Mesh(g,mat(r?r.wall:'#f3ece0',{roughness:.95}));
+   m.position.set((w.x1+w.x2)/2+(hz?0:sg*WALL_T/4),WALL_H/2,(w.z1+w.z2)/2+(hz?sg*WALL_T/4:0));m.castShadow=m.receiveShadow=true;struct.add(m)});
+  const c=new THREE.Mesh(hz?new THREE.BoxGeometry(len,0.04,WALL_T+.01):new THREE.BoxGeometry(WALL_T+.01,0.04,len),capMat);
+  c.position.set((w.x1+w.x2)/2,WALL_H+.02,(w.z1+w.z2)/2);struct.add(c)}}
+
+// ---- furniture: simple 3D shapes per type ----
+function box(g,w,h,d,c,x=0,y=0,z=0,o){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),new THREE.MeshStandardMaterial({color:c,roughness:.75,...o}));
+ m.position.set(x,y+h/2,z);m.castShadow=m.receiveShadow=true;g.add(m);return m}
+function cyl(g,r,h,c,x,y,z,rx=0){const m=new THREE.Mesh(new THREE.CylinderGeometry(r,r,h,24),new THREE.MeshStandardMaterial({color:c,roughness:.5}));
+ m.position.set(x,y,z);m.rotation.x=rx;m.castShadow=true;g.add(m);return m}
+const SHAPE={
+ '🛋️':g=>{box(g,2,.22,.9,'#5f6f5a',0,.1,0);box(g,1.9,.2,.75,'#7f957a',0,.32,.06);box(g,2,.45,.2,'#6b8066',0,.32,-.35);box(g,.18,.32,.9,'#6b8066',-.91,.32,0);box(g,.18,.32,.9,'#6b8066',.91,.32,0);
+  [-.88,.88].forEach(x=>[-.38,.38].forEach(z=>box(g,.06,.1,.06,'#3b3228',x,0,z)))},
+ '🛏️':g=>{box(g,1.7,.3,2.1,'#7a5c43',0,0,0);box(g,1.6,.22,2,'#f2ece2',0,.3,0);box(g,1.62,.06,1.3,'#9fb3c8',0,.5,.33);
+  box(g,.6,.12,.35,'#ffffff',-.38,.52,-.75);box(g,.6,.12,.35,'#ffffff',.38,.52,-.75);box(g,1.7,.6,.1,'#6a4e38',0,.3,-1.05)},
+ '🧊':g=>{box(g,.7,1.8,.68,'#e6eaea',0,0,0,{roughness:.35,metalness:.1});box(g,.71,.015,.69,'#9aa3a3',0,1.15,0);
+  box(g,.03,.35,.03,'#8a9393',.28,1.3,.35);box(g,.03,.45,.03,'#8a9393',.28,.55,.35)},
+ '📺':g=>{box(g,1.4,.45,.4,'#6e5642',0,0,0);box(g,.08,.12,.08,'#2b2b2b',0,.45,0);box(g,1.25,.72,.05,'#1e2124',0,.57,0,{roughness:.3});
+  box(g,1.17,.64,.01,'#2f4b63',0,.61,.03,{roughness:.2,emissive:'#0b1622'})},
+ '🍽️':g=>{box(g,1.4,.05,.9,'#a3794f',0,.7,0);[-.62,.62].forEach(x=>[-.38,.38].forEach(z=>box(g,.06,.7,.06,'#7b5a3a',x,0,z)));
+  [[-.35,-.65],[.35,-.65],[-.35,.65],[.35,.65]].forEach(([x,z])=>{box(g,.4,.04,.4,'#c9b08f',x,.45,z);box(g,.4,.4,.04,'#c9b08f',x,.49,z+(z<0?-.18:.18))})},
+ '🧺':g=>{box(g,.62,.85,.6,'#f1f1ee',0,0,0,{roughness:.4});cyl(g,.21,.03,'#5d7186',0,.42,.31,Math.PI/2);cyl(g,.15,.035,'#a7bccd',0,.42,.315,Math.PI/2);box(g,.5,.06,.02,'#cfd3d4',0,.74,.3)},
+ default:g=>box(g,.7,.5,.7,'#b39a7a',0,.05,0)};
 const furn=new THREE.Group();house.add(furn);
 const meshes=new Map();
-function build(){furn.clear();meshes.clear();for(const p of S.products){
- const [w,h,d]=SIZE[p.icon]||[.7,.6,.7];const g=new THREE.Group();
- const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),new THREE.MeshStandardMaterial({color:COL[p.icon]||'#b9a98f',roughness:.8}));
- m.position.y=h/2+.05;m.castShadow=true;g.add(m);
- const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:emojiTex(p.icon||'📦'),depthTest:false}));sp.scale.set(.6,.6,1);sp.position.y=h+.45;sp.renderOrder=5;g.add(sp);
- g.userData.p=p;g.userData.box=m;place(g);furn.add(g);meshes.set(p,g)}}
-const place=g=>g.position.set(g.userData.p.gx*SX,0,g.userData.p.gy*SZ);
-build();
+function build(){furn.clear();meshes.clear();for(const p of S.products){const g=new THREE.Group();(SHAPE[p.icon]||SHAPE.default)(g);
+ g.userData.p=p;place(g);furn.add(g);meshes.set(p,g)}if(SEL)select(S.products.includes(SEL)?SEL:null)}
+const place=g=>g.position.set(g.userData.p.gx*SX,0.05,g.userData.p.gy*SZ);
+function rebuildAll(){regions();buildStruct();build()}
 
-// undo history
-const H=[];const snap=()=>JSON.stringify(S.products);
+// undo history (products + walls + rooms)
+const H=[];const snap=()=>JSON.stringify({p:S.products,w:S.walls,r:S.rooms});
 function push(){H.push(snap());if(H.length>20)H.shift();updUndo()}
 const undoBtn=document.getElementById('undoBtn');
 function updUndo(){undoBtn.disabled=!H.length}
-undoBtn.onclick=()=>{if(!H.length)return;S.products=JSON.parse(H.pop());select(null);save();build();updUndo()};
+undoBtn.onclick=()=>{if(!H.length)return;const o=JSON.parse(H.pop());S.products=o.p;S.walls=o.w;S.rooms=o.r;SEL=null;closeCard();rebuildAll();save();updUndo()};
 
-// build mode
-let BUILD=false,SEL=null;const buildBtn=document.getElementById('buildBtn'),bar=document.getElementById('buildBar');
-function select(p){if(SEL&&meshes.get(SEL))meshes.get(SEL).userData.box.material.emissive.set(0);SEL=p;
- if(p&&meshes.get(p))meshes.get(p).userData.box.material.emissive.set('#5a4a10')}
-buildBtn.onclick=()=>{BUILD=!BUILD;buildBtn.classList.toggle('on',BUILD);bar.classList.toggle('hidden',!BUILD);if(!BUILD)select(null);updUndo()};
+// build mode + tools
+let BUILD=false,SEL=null,TOOL='move';const buildBtn=document.getElementById('buildBtn'),bar=document.getElementById('buildBar');
+function select(p){const tint=(g,c)=>g&&g.traverse(o=>o.material&&o.material.emissive&&o.material.emissive.set(c));
+ if(SEL)tint(meshes.get(SEL),0);SEL=p;if(p)tint(meshes.get(p),'#4a3c08')}
+const TIPS={move:'גררו רהיט על הרצפה',wall:'גררו על הרצפה לציור קיר',erase:'לחצו/גררו על קיר למחיקה'};
+function setTool(t){TOOL=t;document.querySelectorAll('[data-tool]').forEach(b=>b.classList.toggle('on',b.dataset.tool===t));document.getElementById('tip').textContent=TIPS[t];
+ ctl.touches.ONE=t==='move'?THREE.TOUCH.ROTATE:null}
+document.querySelectorAll('[data-tool]').forEach(b=>b.onclick=()=>setTool(b.dataset.tool));
+function setBuild(on){BUILD=on;buildBtn.classList.toggle('on',on);bar.classList.toggle('hidden',!on);grid.visible=on;closeCard();
+ if(!on){select(null);clearPrev()}setTool('move');updUndo()}
+buildBtn.onclick=()=>setBuild(!BUILD);
+document.getElementById('doneBtn').onclick=()=>setBuild(false);
+const zoom=f=>{const v=cam.position.clone().sub(ctl.target).multiplyScalar(f);const L=v.length();if(L<ctl.minDistance||L>ctl.maxDistance)return;cam.position.copy(ctl.target).add(v)};
+document.getElementById('zin').onclick=()=>zoom(.8);document.getElementById('zout').onclick=()=>zoom(1.25);
+
+// wall preview
+const prevG=new THREE.Group();house.add(prevG);
+function clearPrev(){prevG.clear()}
+function showPrev(segs,color){clearPrev();for(const s of segs){const hz=s.z1===s.z2;const m=new THREE.Mesh(hz?new THREE.BoxGeometry(1,.3,.16):new THREE.BoxGeometry(.16,.3,1),new THREE.MeshBasicMaterial({color,transparent:true,opacity:.7}));
+ m.position.set((s.x1+s.x2)/2,.15,(s.z1+s.z2)/2);prevG.add(m)}}
+function segLine(a,b){const out=[];if(Math.abs(b.x-a.x)>=Math.abs(b.z-a.z)){const [s,e]=[Math.min(a.x,b.x),Math.max(a.x,b.x)];for(let x=s;x<e;x++)out.push({x1:x,z1:a.z,x2:x+1,z2:a.z})}
+ else{const [s,e]=[Math.min(a.z,b.z),Math.max(a.z,b.z)];for(let z=s;z<e;z++)out.push({x1:a.x,z1:z,x2:a.x,z2:z+1})}return out}
+const snapPt=f=>({x:Math.max(0,Math.min(NX,Math.round(f.x))),z:Math.max(0,Math.min(NZ,Math.round(f.z)))});
+function nearestWall(f){let best=null,bd=.45;for(const w of S.walls){const hz=w.z1===w.z2;const mx=(w.x1+w.x2)/2,mz=(w.z1+w.z2)/2;
+ const d=hz?(Math.abs(f.z-mz)+Math.max(0,Math.abs(f.x-mx)-.5)):(Math.abs(f.x-mx)+Math.max(0,Math.abs(f.z-mz)-.5));if(d<bd){bd=d;best=w}}return best}
 
 // pointer: raycast
 const rc=new THREE.Raycaster(),ndc=new THREE.Vector2(),plane=new THREE.Plane(new THREE.Vector3(0,1,0),0),hit=new THREE.Vector3();
@@ -120,20 +183,33 @@ const cv=renderer.domElement;
 function setNdc(e){const r=cv.getBoundingClientRect();ndc.set((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1);rc.setFromCamera(ndc,cam)}
 function pick(e){setNdc(e);const h=rc.intersectObjects(furn.children,true)[0];let o=h&&h.object;while(o&&!o.userData.p)o=o.parent;return o?o.userData.p:null}
 function floorPt(e){setNdc(e);return rc.ray.intersectPlane(plane,hit)?{x:hit.x+CX,z:hit.z+CZ}:null}
-let down=null,drag=null,pts=0;
-cv.addEventListener('pointerdown',e=>{pts++;if(pts>1){if(drag){drag=null;ctl.enabled=true}return}
- down={x:e.clientX,y:e.clientY,p:pick(e)};
+let down=null,drag=null,wd=null,pts=0;
+function cancelWall(){if(wd){if(wd.erased){const o=JSON.parse(wd.before);S.walls=o.w;S.rooms=o.r;rebuildAll()}wd=null;clearPrev()}}
+cv.addEventListener('pointerdown',e=>{pts++;if(pts>1){if(drag){drag=null}ctl.enabled=true;cancelWall();return}
+ down={x:e.clientX,y:e.clientY,p:BUILD&&TOOL!=='move'?null:pick(e)};
+ if(BUILD&&TOOL!=='move'){const f=floorPt(e);if(!f)return;ctl.enabled=false;
+  if(TOOL==='wall'){wd={a:snapPt(f),segs:[],before:snap()}}
+  else{wd={erased:0,before:snap()};eraseAt(f)}
+  return}
  if(BUILD&&down.p){const f=floorPt(e);if(f){select(down.p);drag={p:down.p,ox:down.p.gx*SX-f.x,oz:down.p.gy*SZ-f.z,before:snap(),moved:false};ctl.enabled=false;cv.setPointerCapture(e.pointerId)}}},{capture:true});
-cv.addEventListener('pointermove',e=>{if(!drag)return;const f=floorPt(e);if(!f)return;
+function eraseAt(f){const w=nearestWall(f);if(w){S.walls=S.walls.filter(q=>q!==w);wd.erased++;regions();buildStruct()}}
+cv.addEventListener('pointermove',e=>{
+ if(wd){const f=floorPt(e);if(!f)return;if(TOOL==='wall'){wd.segs=segLine(wd.a,snapPt(f));showPrev(wd.segs,'#2f7a4a')}else eraseAt(f);return}
+ if(!drag)return;const f=floorPt(e);if(!f)return;
  const sn=v=>Math.round(v*10)/10,cl=(v,a,b)=>Math.max(a,Math.min(b,v));
  const x=cl(sn(f.x+drag.ox),.3,9.7),z=cl(sn(f.z+drag.oz),.3,7.7);
  drag.p.gx=+(x/SX).toFixed(3);drag.p.gy=+(z/SZ).toFixed(3);drag.moved=true;place(meshes.get(drag.p))});
-function up(e){pts=Math.max(0,pts-1);if(drag){const d=drag;drag=null;ctl.enabled=true;
+function up(e){pts=Math.max(0,pts-1);if(BUILD&&TOOL!=='move')ctl.enabled=true;
+ if(wd){const d=wd;wd=null;clearPrev();
+  if(TOOL==='wall'&&d.segs.length){const K=new Set(S.walls.map(ek));const add=d.segs.filter(s=>!K.has(ek(s)));if(add.length){H.push(d.before);if(H.length>20)H.shift();S.walls.push(...add);rebuildAll();save()}}
+  else if(TOOL==='erase'&&d.erased){H.push(d.before);if(H.length>20)H.shift();rebuildAll();save()}
+  updUndo();down=null;return}
+ if(drag){const d=drag;drag=null;ctl.enabled=true;
   if(d.moved){H.push(d.before);if(H.length>20)H.shift();const r=roomAtM(d.p.gx*SX,d.p.gy*SZ);if(r)d.p.room=r.id;save();updUndo()}}
  if(down&&Math.hypot(e.clientX-down.x,e.clientY-down.y)<8){
-  if(down.p){if(!BUILD||!SEL||true)openCard(down.p)}else{select(null);closeCard()}}
+  if(down.p){if(!BUILD)openCard(down.p);else select(down.p)}else{select(null);closeCard()}}
  down=null}
-cv.addEventListener('pointerup',up);cv.addEventListener('pointercancel',e=>{pts=Math.max(0,pts-1);if(drag){S.products=JSON.parse(drag.before);drag=null;ctl.enabled=true;build()}down=null});
+cv.addEventListener('pointerup',up);cv.addEventListener('pointercancel',e=>{pts=Math.max(0,pts-1);ctl.enabled=true;cancelWall();if(drag){S.products=JSON.parse(drag.before).p;drag=null;ctl.enabled=true;build()}down=null});
 
 // price card
 const card=document.getElementById('card');
@@ -153,10 +229,10 @@ sheet.onclick=e=>{if(e.target===sheet)sheet.classList.add('hidden')};
 
 // add product
 const form=document.getElementById('addForm');
-document.getElementById('roomSel').innerHTML=ROOMS.map(r=>`<option value="${r.id}">${r.name}</option>`).join('');
+function fillRoomSel(){const sel=document.getElementById('roomSel');sel.innerHTML=ROOMS_NOW.map(r=>`<option value="${r.id}">${esc(r.name)}</option>`).join('')||'<option value="">—</option>'}
 document.getElementById('addBtn').onclick=()=>{form.reset();form.date.value=new Date().toISOString().slice(0,10);document.getElementById('formSheet').classList.remove('hidden')};
 document.getElementById('cancelAdd').onclick=()=>document.getElementById('formSheet').classList.add('hidden');
-form.onsubmit=e=>{e.preventDefault();const r=ROOMS.find(x=>x.id===form.room.value);push();
+form.onsubmit=e=>{e.preventDefault();const r=ROOMS_NOW.find(x=>x.id===form.room.value)||{id:'',cx:5,cz:4};push();
  S.products.push({id:Date.now(),name:form.name.value.trim()||'מוצר',price:+form.price.value||0,date:form.date.value,room:r.id,icon:form.icon.value,
-  gx:+((r.x+r.w/2)/SX).toFixed(3),gy:+((r.z+r.d/2)/SZ).toFixed(3)});save();build();renderList();document.getElementById('formSheet').classList.add('hidden')};
-updUndo();
+  gx:+(r.cx/SX).toFixed(3),gy:+(r.cz/SZ).toFixed(3)});save();build();renderList();document.getElementById('formSheet').classList.add('hidden')};
+rebuildAll();save();setTool('move');updUndo();
