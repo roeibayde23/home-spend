@@ -2,36 +2,22 @@
 <html lang="he" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="theme-color" content="#2f4a3a">
-<title>HOME SPEND v1</title>
+<title>HOME SPEND 3D</title>
 <link rel="stylesheet" href="styles.css">
+<script type="importmap">{"imports":{"three":"https://unpkg.com/three@0.160.0/build/three.module.js","three/addons/":"https://unpkg.com/three@0.160.0/examples/jsm/"}}</script>
 </head>
 <body>
 <header class="top">
-  <button id="menuBtn" class="icon" aria-label="תפריט">☰</button>
-  <h1>HOME SPEND <small>v1</small></h1>
-  <span><button id="buildBtn" class="pill">🧱 בנייה</button> <button id="spendBtn" class="pill">הוצאות</button></span>
+  <h1>HOME SPEND <small>3D</small></h1>
+  <span><button id="resetCam" class="pill">🎯 מרכז</button> <button id="spendBtn" class="pill">הוצאות</button></span>
 </header>
-<main id="stage"><svg id="house" viewBox="-300 -40 600 420"></svg></main>
-<div id="buildBar" class="buildbar hidden"><button data-tool="wall" class="on">✏️ קיר</button><button data-tool="erase">🧽 מחק</button><button data-tool="move">↔️ קיר</button><button data-tool="furn">📦 רהיט</button><button data-tool="paint">🎨 צבע</button><button id="doneBtn" class="done">✓ סיום</button></div>
-<button id="addBtn" class="fab">＋ הוסף מוצר</button>
-<div id="card" class="card hidden"></div>
-<div id="palette" class="palette hidden"></div>
+<main id="stage"></main>
+<div id="hint" class="hint">גרירה — סיבוב · צביטה/גלגלת — זום · שתי אצבעות/קליק ימני — הזזה</div>
 <div id="sheet" class="sheet hidden"><div class="sheet-in">
-  <div class="sheet-h"><h2>הוצאות</h2><button class="icon close" data-close="sheet">✕</button></div>
-  <ul id="list"></ul><div class="total">סה״כ: <b id="total"></b></div></div></div>
-<div id="form" class="sheet hidden"><form class="sheet-in" id="addForm">
-  <div class="sheet-h"><h2>מוצר חדש</h2><button type="button" class="icon close" data-close="form">✕</button></div>
-  <label>שם<input name="name" required placeholder="למשל: מכונת קפה"></label>
-  <label>מחיר (Kč)<input name="price" type="number" min="0" required inputmode="numeric"></label>
-  <label>תאריך<input name="date" type="date" required></label>
-  <label>חדר<select name="room" id="roomSel"></select></label>
-  <label>אייקון<select name="icon"><option>📦</option><option>☕</option><option>💡</option><option>🪴</option><option>🖥️</option><option>🧺</option><option>🪑</option><option>🎮</option></select></label>
-  <button class="pill dark">שמור והצב</button></form></div>
-<div id="menu" class="sheet hidden"><div class="sheet-in">
-  <div class="sheet-h"><h2>הגדרות</h2><button class="icon close" data-close="menu">✕</button></div>
-  <button id="resetBtn" class="pill dark">איפוס דוגמה</button>
-  <p class="muted">הנתונים נשמרים רק במכשיר הזה.</p></div></div>
-<script src="app.js"></script>
+  <div class="sheet-h"><h2>הוצאות</h2><button class="icon" id="closeSheet">✕</button></div>
+  <ul id="list"></ul><div class="total">סה״כ: <b id="total"></b></div>
+  <p class="muted">בנייה ורהיטים ב־3D — בשלבים הבאים.</p></div></div>
+<script type="module" src="app.js"></script>
 </body></html>
