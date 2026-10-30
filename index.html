@@ -11,13 +11,21 @@
 <body>
 <header class="top">
   <h1>HOME SPEND <small>3D</small></h1>
-  <span><button id="resetCam" class="pill">🎯 מרכז</button> <button id="spendBtn" class="pill">הוצאות</button></span>
+  <span><button id="buildBtn" class="pill alt">🧱 בנייה</button> <button id="resetCam" class="pill alt">🎯</button> <button id="spendBtn" class="pill">הוצאות</button></span>
 </header>
 <main id="stage"></main>
 <div id="hint" class="hint">גרירה — סיבוב · צביטה/גלגלת — זום · שתי אצבעות/קליק ימני — הזזה</div>
 <div id="sheet" class="sheet hidden"><div class="sheet-in">
   <div class="sheet-h"><h2>הוצאות</h2><button class="icon" id="closeSheet">✕</button></div>
   <ul id="list"></ul><div class="total">סה״כ: <b id="total"></b></div>
-  <p class="muted">בנייה ורהיטים ב־3D — בשלבים הבאים.</p></div></div>
+  <button id="addBtn" class="pill" style="margin-top:12px;width:100%">＋ הוסף מוצר</button></div></div>
+<div id="buildBar" class="bbar hidden"><span>גררו רהיט על הרצפה</span><button id="undoBtn" class="pill">↩️ אחורה</button></div>
+<div id="card" class="card hidden"></div>
+<div id="formSheet" class="sheet hidden"><div class="sheet-in"><form id="addForm">
+ <div class="sheet-h"><h2>מוצר חדש</h2><button type="button" class="icon" id="cancelAdd">✕</button></div>
+ <label>שם<input name="name" required></label><label>מחיר (Kč)<input name="price" type="number" inputmode="numeric" required></label>
+ <label>תאריך<input name="date" type="date"></label><label>חדר<select name="room" id="roomSel"></select></label>
+ <label>סוג<select name="icon"><option>🛋️</option><option>📺</option><option>🧊</option><option>🍽️</option><option>🛏️</option><option>🧺</option><option>📦</option></select></label>
+ <button class="pill" style="width:100%;margin-top:10px">שמור</button></form></div></div>
 <script type="module" src="app.js"></script>
 </body></html>

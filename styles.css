@@ -12,3 +12,12 @@ h1{font-size:18px;letter-spacing:1px}h1 small{font-size:11px;color:#8a8;}
 .sheet-h{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
 #list{list-style:none;padding:0}#list li{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #eee}
 .total{margin-top:10px;font-size:16px}.muted{color:#999;font-size:12px;margin-top:10px}
+
+.pill.alt{background:#e3d9c6;color:#2f3a33}.pill.on{background:#c48f6a;color:#fff}.pill:disabled{opacity:.4}
+#list li small{display:block;color:#999;font-size:11px}
+.bbar{position:fixed;z-index:6;bottom:calc(env(safe-area-inset-bottom) + 14px);inset-inline:12px;display:flex;justify-content:space-between;align-items:center;background:rgba(255,250,242,.95);padding:8px 12px;border-radius:16px;box-shadow:0 2px 10px #0002;font-size:13px}
+.bbar.hidden,.card.hidden{display:none}
+.card{position:fixed;z-index:7;top:calc(env(safe-area-inset-top) + 64px);inset-inline:0;margin:auto;width:230px;background:#fffaf2;border-radius:16px;padding:14px;text-align:center;box-shadow:0 4px 18px #0003}
+.card .x{position:absolute;top:6px;inset-inline-end:8px}.card .ce{font-size:32px}.card .p{font-size:20px;color:#2f4a3a;margin:4px 0}.card .d{font-size:12px;color:#888}
+.card .del{margin-top:10px;border:0;border-radius:12px;padding:7px 14px;background:#f1ddd3;color:#8a3b22}
+#addForm label{display:block;margin:6px 0;font-size:13px}#addForm input,#addForm select{display:block;width:100%;padding:8px;border:1px solid #ddd;border-radius:10px;font-size:16px;margin-top:3px}
