@@ -59,6 +59,8 @@ function regions(){const W=new Set(S.walls.map(w=>ek(w.x1,w.y1,w.x2,w.y2)));
  const cell=id.map(i=>i>=0&&enc[i]?i:-1);REG={cell,list:enc};save();return REG}
 const roomAt=(gx,gy)=>{const x=Math.floor(gx),y=Math.floor(gy);if(x<0||y<0||x>=N||y>=N)return null;const i=REG.cell[y*N+x];return i>=0?REG.list[i].room:null};
 const roomName=p=>(roomAt(p.gx,p.gy)||{name:'מחוץ לבית'}).name;
+let CAM=null,FSEL=null;
+const applyCam=()=>svg.setAttribute('viewBox',`${CAM.x} ${CAM.y} ${CAM.w} ${CAM.h}`);
 let BUILD=false,TOOL='wall',PREV=null,PEND=null;
 function draw(){
  regions();svg.innerHTML='';const LABS=[];
@@ -67,14 +69,7 @@ function draw(){
  // floors
  REG.list.forEach(r=>{if(!r)return;const c=r.room;
   for(const[x,y]of r.cells)el('polygon',{points:pts([iso(x,y),iso(x+1,y),iso(x+1,y+1),iso(x,y+1)]),fill:c.floor,stroke:c.floor,'stroke-width':.8});
-  // label at front-most cell
-  const f=r.cells.reduce((a,b)=>(b[0]+b[1])>(a[0]+a[1])?b:a);
-  LABS.push(()=>{const lab=el('g',{class:'roomlab'});const [lx,ly]=iso(f[0]+0.65,f[1]+0.65);
-  const tw=c.name.length*10+46;
-  el('rect',{x:lx-tw/2,y:ly-30,width:tw,height:28,rx:14,fill:'#fffffff0',stroke:'#2f4a3a55'},lab);
-  el('text',{x:lx+10,y:ly-12,'text-anchor':'middle','font-size':17,'font-weight':700,fill:'#1f2f26'},lab).textContent=c.name;
-  el('text',{x:lx-tw/2+14,y:ly-12,'text-anchor':'middle','font-size':13},lab).textContent='🎨';
-  lab.addEventListener('click',e=>{e.stopPropagation();openPalette(c,e)});});});
+});
  if(BUILD){for(let i=0;i<=N;i++){el('line',lineA(iso(i,0),iso(i,N)),);el('line',lineA(iso(0,i),iso(N,i)))}}
  // walls + products sorted by depth so near things overlap far things
  const R=(x,y)=>(x<0||y<0||x>=N||y>=N)?null:(REG.cell[y*N+x]>=0?REG.list[REG.cell[y*N+x]].room:null);
@@ -94,10 +89,10 @@ function draw(){
   if(PEND){const[x,y]=iso(PEND[0],PEND[1]);el('circle',{cx:x,cy:y,r:8,fill:'#2f7a4a'})}}
  else LABS.forEach(f=>f());
  if(BUILD){const a=iso(0,0,40),b=iso(N,0),c=iso(0,N),d=iso(N,N);svg.setAttribute('viewBox',`${c[0]-10} ${a[1]-10} ${b[0]-c[0]+20} ${d[1]-a[1]+20}`)}
- else{const bb=svg.getBBox();svg.setAttribute('viewBox',`${bb.x-6} ${bb.y-6} ${bb.width+12} ${bb.height+12}`)}
+ else{if(!CAM){const bb=svg.getBBox();CAM={x:bb.x-6,y:bb.y-6,w:bb.width+12,h:bb.height+12}}applyCam()}
 }
 const lineA=(a,b)=>({x1:a[0],y1:a[1],x2:b[0],y2:b[1],stroke:'#2f4a3a40','stroke-width':1});
-function drawProduct(p,LABS){const g=el('g',{class:'item'});const s=0.6,cx=p.gx,cy=p.gy,hz=26;
+function drawProduct(p,LABS){const g=el('g',{class:'item'+(BUILD&&FSEL===p?' fsel':'')});const s=0.6,cx=p.gx,cy=p.gy,hz=26;
   const col=ICOL[p.icon]||'#c9a27a';
   el('polygon',{points:pts([iso(cx-s,cy-s),iso(cx+s,cy-s),iso(cx+s,cy+s),iso(cx-s,cy+s)]),fill:'#0003',transform:'translate(0,4)'},g);
   el('polygon',{points:pts([iso(cx-s,cy+s),iso(cx+s,cy+s),iso(cx+s,cy+s,hz),iso(cx-s,cy+s,hz)]),fill:shade(col,.82),stroke:shade(col,.6)},g);
@@ -128,15 +123,20 @@ function wallRun(w){const h=w.y1==w.y2,K=new Set(S.walls.map(q=>ek(q.x1,q.y1,q.x
 function shiftRun(run,dx,dy){let mx=Math.min(...run.map(s=>s.x1)),Mx=Math.max(...run.map(s=>s.x2)),my=Math.min(...run.map(s=>s.y1)),My=Math.max(...run.map(s=>s.y2));
  dx=Math.max(-mx,Math.min(N-Mx,dx));dy=Math.max(-my,Math.min(N-My,dy));return run.map(s=>({x1:s.x1+dx,y1:s.y1+dy,x2:s.x2+dx,y2:s.y2+dy}))}
 svg.addEventListener('pointerdown',e=>{if(!BUILD)return;e.preventDefault();svg.setPointerCapture(e.pointerId);const g=toGrid(e);
+ if(TOOL=='paint'){const r=roomAt(g[0],g[1]);if(r)openPalette(r,e);return}
+ if(TOOL=='furn'){let best=null,bd=0.9;for(const p of S.products){const d=Math.hypot(p.gx-g[0],p.gy-g[1]);if(d<bd){bd=d;best=p}}
+  FSEL=best;if(best)drag={furn:true,off:[best.gx-g[0],best.gy-g[1]]};draw();return}
  if(TOOL=='move'){const w=nearestWall(g);if(!w){SEL=null;draw();return}SEL=wallRun(w);drag={move:true,start:g,dx:0,dy:0};PREV=[]}
  else if(TOOL=='wall'){drag={start:snap(g),moved:false};PREV=[]}
  else{drag={erase:true};eraseAt(g)}draw()});
 svg.addEventListener('pointermove',e=>{if(!BUILD||!drag)return;const g=toGrid(e);
  if(drag.erase){eraseAt(g);return}
+ if(drag.furn){const c=v=>Math.max(0,Math.min(N,Math.round(v*10)/10));FSEL.gx=c(g[0]+drag.off[0]);FSEL.gy=c(g[1]+drag.off[1]);draw();return}
  if(drag.move){const dx=Math.round(g[0]-drag.start[0]),dy=Math.round(g[1]-drag.start[1]);if(dx!=drag.dx||dy!=drag.dy){drag.dx=dx;drag.dy=dy;PREV=dx||dy?shiftRun(SEL,dx,dy):[];draw()}return}
  const p=snap(g);if(p[0]!=drag.start[0]||p[1]!=drag.start[1]){drag.moved=true;PEND=null;PREV=segsBetween(drag.start,p);draw()}});
 svg.addEventListener('pointerup',e=>{if(!BUILD||!drag)return;const d=drag;drag=null;
  if(d.erase){save();draw();return}
+ if(d.furn){const r=roomAt(FSEL.gx,FSEL.gy);if(r)FSEL.room=r.id;save();draw();return}
  if(d.move){if(PREV&&PREV.length){const old=new Set(SEL);S.walls=S.walls.filter(q=>!old.has(q));const moved=PREV;commit(moved);
   SEL=S.walls.filter(q=>moved.some(m=>ek(m.x1,m.y1,m.x2,m.y2)==ek(q.x1,q.y1,q.x2,q.y2)))}PREV=null;draw();return}
  if(d.moved)commit(PREV);
@@ -145,9 +145,9 @@ svg.addEventListener('pointerup',e=>{if(!BUILD||!drag)return;const d=drag;drag=n
  PREV=null;draw()});
 function commit(segs){const m=new Map(S.walls.map(w=>[ek(w.x1,w.y1,w.x2,w.y2),w]));segs.forEach(s=>addSeg(m,s.x1,s.y1,s.x2,s.y2));S.walls=[...m.values()];save()}
 function eraseAt(g){const w=nearestWall(g);if(w){S.walls=S.walls.filter(q=>q!==w);draw()}}
-function setBuild(on){BUILD=on;PEND=PREV=null;hideFloat();document.body.classList.toggle('building',on);$('#buildBar').classList.toggle('hidden',!on);
+function setBuild(on){BUILD=on;CAM=null;PEND=PREV=null;hideFloat();document.body.classList.toggle('building',on);$('#buildBar').classList.toggle('hidden',!on);
  $('#addBtn').classList.toggle('hidden',on);if(!on){regions();save()}setTool('wall');draw()}
-function setTool(t){TOOL=t;PEND=null;SEL=null;document.querySelectorAll('#buildBar [data-tool]').forEach(b=>b.classList.toggle('on',b.dataset.tool==t))}
+function setTool(t){TOOL=t;PEND=null;SEL=null;FSEL=null;hideFloat();document.querySelectorAll('#buildBar [data-tool]').forEach(b=>b.classList.toggle('on',b.dataset.tool==t))}
 function place(elm,e){elm.classList.remove('hidden');const w=elm.offsetWidth,h=elm.offsetHeight;
  elm.style.left=Math.min(innerWidth-w-8,Math.max(8,e.clientX-w/2))+'px';
  elm.style.top=Math.min(innerHeight-h-8,Math.max(64,e.clientY-h-14))+'px';}
@@ -163,7 +163,22 @@ function openPalette(r,e){hideFloat();const p=$('#palette');
    if(r[k]==col)s.style.borderColor='#2f4a3a';
    s.onclick=ev=>{ev.stopPropagation();r[k]=col;save();draw();openPalette(r,e)};row.appendChild(s)})});
  place(p,e)}
-document.addEventListener('click',e=>{if(!e.target.closest('.card,.palette'))hideFloat()});
+document.addEventListener('click',e=>{if(NOCLICK){NOCLICK=false;e.stopPropagation();e.preventDefault();return}if(BUILD&&TOOL=='paint'&&e.target.closest('#house'))return;if(!e.target.closest('.card,.palette'))hideFloat()},true);
+// ---- camera pan / pinch / wheel (outside build) ----
+let NOCLICK=false;const PT=new Map();let pan=null;
+const svgPt=(cx,cy)=>{const r=svg.getBoundingClientRect(),k=Math.max(CAM.w/r.width,CAM.h/r.height);return{k,x:CAM.x+(cx-r.left-(r.width-CAM.w/k)/2)*k,y:CAM.y+(cy-r.top-(r.height-CAM.h/k)/2)*k}};
+function zoomAt(cx,cy,f){const p=svgPt(cx,cy);const nw=CAM.w*f;if(nw<120||nw>4000)return;CAM.x=p.x-(p.x-CAM.x)*f;CAM.y=p.y-(p.y-CAM.y)*f;CAM.w*=f;CAM.h*=f;applyCam()}
+svg.addEventListener('pointerdown',e=>{if(BUILD||!CAM)return;PT.set(e.pointerId,[e.clientX,e.clientY]);
+ if(PT.size==1)pan={x:e.clientX,y:e.clientY,moved:false};
+ else if(PT.size==2){const[a,b]=[...PT.values()];pan={pinch:Math.hypot(a[0]-b[0],a[1]-b[1]),moved:true};NOCLICK=true}});
+svg.addEventListener('pointermove',e=>{if(BUILD||!pan||!PT.has(e.pointerId))return;PT.set(e.pointerId,[e.clientX,e.clientY]);
+ if(PT.size>=2){const[a,b]=[...PT.values()],d=Math.hypot(a[0]-b[0],a[1]-b[1]);if(pan.pinch&&d>0){zoomAt((a[0]+b[0])/2,(a[1]+b[1])/2,pan.pinch/d);pan.pinch=d}return}
+ const dx=e.clientX-pan.x,dy=e.clientY-pan.y;if(!pan.moved&&Math.hypot(dx,dy)<6)return;
+ if(!pan.moved){pan.moved=true;try{svg.setPointerCapture(e.pointerId)}catch(_){}}
+ const k=svgPt(0,0).k;CAM.x-=dx*k;CAM.y-=dy*k;pan.x=e.clientX;pan.y=e.clientY;applyCam()});
+const endPt=e=>{if(!PT.has(e.pointerId))return;PT.delete(e.pointerId);if(pan&&pan.moved)NOCLICK=true;if(PT.size==0){pan=null;setTimeout(()=>NOCLICK=false,50)}else if(PT.size==1){const[a]=[...PT.values()];pan={x:a[0],y:a[1],moved:true}}};
+svg.addEventListener('pointerup',endPt);svg.addEventListener('pointercancel',endPt);
+svg.addEventListener('wheel',e=>{if(BUILD||!CAM)return;e.preventDefault();zoomAt(e.clientX,e.clientY,Math.exp(e.deltaY*0.0015))},{passive:false});
 const show=id=>$('#'+id).classList.remove('hidden'), hide=id=>$('#'+id).classList.add('hidden');
 document.querySelectorAll('[data-close]').forEach(b=>b.onclick=()=>hide(b.dataset.close));
 document.querySelectorAll('.sheet').forEach(s=>s.addEventListener('click',e=>{if(e.target==s)s.classList.add('hidden')}));

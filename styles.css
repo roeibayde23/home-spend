@@ -26,8 +26,10 @@ html,body{margin:0;height:100%;font-family:system-ui,"Segoe UI",Arial,sans-serif
 label{display:block;margin-top:10px;font-size:14px}
 input,select{width:100%;padding:11px;font-size:16px;border:1px solid #ccc;border-radius:10px;margin-top:4px;background:#fff}
 .muted{color:#888;font-size:13px}
-.buildbar{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);display:flex;gap:6px;background:#fff;padding:6px;border-radius:26px;box-shadow:0 4px 14px #0003;z-index:4}
-.buildbar button{border:0;border-radius:20px;padding:11px 14px;font-size:15px;font-weight:600;background:#eee;color:#2f4a3a}
+.buildbar{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);display:flex;flex-wrap:wrap;justify-content:center;width:max-content;max-width:calc(100vw - 16px);gap:4px;background:#fff;padding:5px;border-radius:22px;box-shadow:0 4px 14px #0003;z-index:4}
+.buildbar button{border:0;border-radius:20px;padding:9px 10px;font-size:14px;font-weight:600;background:#eee;color:#2f4a3a}
 .buildbar button.on{background:#2f4a3a;color:#fff}.buildbar .done{background:#7d9b76;color:#fff}
 body.building #house{touch-action:none;cursor:crosshair}body.building .item,body.building .roomlab{pointer-events:none}
 body.building #spendBtn{display:none}
+
+#house{touch-action:none}.item.fsel polygon{stroke:#f0a020;stroke-width:3}
