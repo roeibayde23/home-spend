@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#2f4a3a">
+<title>HOME SPEND v1</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header class="top">
+  <button id="menuBtn" class="icon" aria-label="תפריט">☰</button>
+  <h1>HOME SPEND <small>v1</small></h1>
+  <button id="spendBtn" class="pill">הוצאות</button>
+</header>
+<main id="stage"><svg id="house" viewBox="-300 -40 600 420"></svg></main>
+<button id="addBtn" class="fab">＋ הוסף מוצר</button>
+<div id="card" class="card hidden"></div>
+<div id="palette" class="palette hidden"></div>
+<div id="sheet" class="sheet hidden"><div class="sheet-in">
+  <div class="sheet-h"><h2>הוצאות</h2><button class="icon close" data-close="sheet">✕</button></div>
+  <ul id="list"></ul><div class="total">סה״כ: <b id="total"></b></div></div></div>
+<div id="form" class="sheet hidden"><form class="sheet-in" id="addForm">
+  <div class="sheet-h"><h2>מוצר חדש</h2><button type="button" class="icon close" data-close="form">✕</button></div>
+  <label>שם<input name="name" required placeholder="למשל: מכונת קפה"></label>
+  <label>מחיר (Kč)<input name="price" type="number" min="0" required inputmode="numeric"></label>
+  <label>תאריך<input name="date" type="date" required></label>
+  <label>חדר<select name="room" id="roomSel"></select></label>
+  <label>אייקון<select name="icon"><option>📦</option><option>☕</option><option>💡</option><option>🪴</option><option>🖥️</option><option>🧺</option><option>🪑</option><option>🎮</option></select></label>
+  <button class="pill dark">שמור והצב</button></form></div>
+<div id="menu" class="sheet hidden"><div class="sheet-in">
+  <div class="sheet-h"><h2>הגדרות</h2><button class="icon close" data-close="menu">✕</button></div>
+  <button id="resetBtn" class="pill dark">איפוס דוגמה</button>
+  <p class="muted">הנתונים נשמרים רק במכשיר הזה.</p></div></div>
+<script src="app.js"></script>
+</body></html>
