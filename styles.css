@@ -102,3 +102,13 @@ h1{font-size:18px;letter-spacing:1px}h1 small{font-size:11px;color:#8a8;}
 .cpanel.off .srng{opacity:.45}
 .tb b{font-size:17px;line-height:20px}
 .emeta{font-size:12px;color:#8a7a60;font-weight:500;margin-inline-start:6px}
+
+.tb.shopb b{color:#b8743f;filter:none;display:flex;height:22px;align-items:center}
+.tb.shopb.on b,.tb.shopb:active b{color:#fff}
+.selctl{position:fixed;z-index:8;top:calc(env(safe-area-inset-top) + 62px);inset-inline:0;margin:auto;width:max-content;max-width:94vw;display:flex;align-items:center;gap:6px;background:#fffaf2;border:1px solid #e6d6bf;border-radius:18px;padding:6px 8px;box-shadow:0 4px 16px #0002}
+.selctl.hidden{display:none}
+.selctl #selName{font-size:13px;color:#2f4a3a;padding:0 6px;max-width:34vw;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.selctl .sc{display:flex;align-items:center;gap:4px;border:0;border-radius:12px;padding:7px 11px;background:#f3e6d5;color:#8a5a33;font:600 12px inherit;font-family:inherit}
+.selctl .sc b{font-weight:400;font-size:15px}.selctl .sc.on{background:#b8743f;color:#fff}.selctl .sc.x{background:none;color:#999;padding:7px 6px}
+.card{width:200px;padding:12px 12px 10px}
+.card .edit.mini2{position:absolute;top:6px;inset-inline-start:8px;margin:0;border:0;border-radius:10px;padding:4px 8px;font-size:11px;background:#f3e6d5;color:#8a5a33}
