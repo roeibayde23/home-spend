@@ -30,6 +30,16 @@ Object.assign(sun.shadow.camera,{left:-9,right:9,top:9,bottom:-9}); scene.add(su
 const fill=new THREE.DirectionalLight('#dfe8ff',0.35); fill.position.set(-8,6,-6); scene.add(fill);
 const ground=new THREE.Mesh(new THREE.CircleGeometry(30,64),new THREE.MeshStandardMaterial({color:'#e4dccb',roughness:1}));
 ground.rotation.x=-Math.PI/2; ground.position.y=-0.02; ground.receiveShadow=true; scene.add(ground);
+const backdrop=new THREE.Group();scene.add(backdrop);
+function applyBackdrop(set){backdrop.clear();const bm=(c)=>new THREE.MeshStandardMaterial({color:c,roughness:1});
+ if(set==='building'){scene.background.set('#dfe4e8');scene.fog.color.set('#dfe4e8');ground.material.color.set('#bfc2c2');ground.position.y=-0.32;
+  const slab=new THREE.Mesh(new THREE.BoxGeometry(12.4,0.3,10.4),bm('#d2d0cb'));slab.position.y=-0.16;slab.receiveShadow=true;backdrop.add(slab);
+  const par=[[0,-5.3,12.6,.2],[0,5.3,12.6,.2],[-6.3,0,.2,10.8],[6.3,0,.2,10.8]];par.forEach(([x,z,w,d])=>{const m=new THREE.Mesh(new THREE.BoxGeometry(w,.5,d),bm('#c4c1ba'));m.position.set(x,.1,z);backdrop.add(m)});
+  [[-16,-14,6,9,5],[14,-16,7,13,6],[-20,6,5,7,6],[20,4,6,10,5],[2,-22,8,16,6],[-8,-24,5,11,5]].forEach(([x,z,w,h,d])=>{const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),bm('#b9c0c6'));m.position.set(x,h/2-6,z);backdrop.add(m)});
+ }else{scene.background.set('#e9efe0');scene.fog.color.set('#e9efe0');ground.material.color.set('#a9c08a');ground.position.y=-0.02;
+  const yard=new THREE.Mesh(new THREE.BoxGeometry(11,.04,9),bm('#cfc4ac'));yard.position.y=-0.01;backdrop.add(yard);
+  [[-8,-6],[8,-7],[-9,5],[9,6],[0,-9]].forEach(([x,z])=>{const t=new THREE.Mesh(new THREE.SphereGeometry(1,16,12),bm('#7f9c62'));t.position.set(x,1,z);t.scale.set(1,1.2,1);t.castShadow=true;backdrop.add(t)});}
+ const b=document.getElementById('setBtn');if(b)b.textContent=set==='building'?'🏢 בניין':'🌳 קרקע'}
 const house=new THREE.Group(); house.position.set(-CX,0,-CZ); scene.add(house);
 const struct=new THREE.Group(); house.add(struct);
 // grid overlay for build mode
@@ -71,7 +81,8 @@ let S;try{S=JSON.parse(localStorage.getItem(KEY))}catch(e){}
 if(!S||typeof S!=='object')S={};
 if(!Array.isArray(S.products))S.products=seedP();
 const okW=w=>w&&[w.x1,w.z1,w.x2,w.z2].every(n=>typeof n==='number'&&isFinite(n)&&n>=0&&n<=Math.max(NX,NZ));
-if(!Array.isArray(S.walls)||!S.walls.length||!S.walls.every(okW)){S.walls=defaultWalls();S.rooms=defaultRooms()}
+if(!Array.isArray(S.walls)||!S.walls.every(okW)){S.walls=[];S.rooms=defaultRooms()}
+if(S.setting!=='building')S.setting='ground';
 if(Array.isArray(S.rooms)&&!S.rooms.every(r=>r&&typeof r.ax==='number'&&typeof r.az==='number'))S.rooms=defaultRooms();
 S.products=S.products.filter(p=>p&&typeof p==='object');
 if(!Array.isArray(S.rooms))S.rooms=defaultRooms();
@@ -82,7 +93,10 @@ const ek=w=>{const a=w.x1+','+w.z1,b=w.x2+','+w.z2;return a<b?a+'|'+b:b+'|'+a};
 
 // ---- rooms: flood-fill cells bounded by walls; regions leaking outside grid = not a room ----
 let CELL=[];   // CELL[z][x] = room or null
-function regions(){const K=new Set(S.walls.map(ek));const has=(x1,z1,x2,z2)=>K.has(ek({x1,z1,x2,z2}));
+function regions(){if(!S.walls.length){if(!S.rooms.length)S.rooms=defaultRooms();CELL=[...Array(NZ)].map(()=>Array(NX).fill(null));
+  ROOMS.forEach(R=>{const m=S.rooms.find(o=>o.id===R.id)||S.rooms.find(o=>o.ax>=R.x&&o.ax<R.x+R.w&&o.az>=R.z&&o.az<R.z+R.d);if(!m)return;m.cx=R.x+R.w/2;m.cz=R.z+R.d/2;for(let z=R.z;z<R.z+R.d;z++)for(let x=R.x;x<R.x+R.w;x++)CELL[z][x]=m});
+  ROOMS_NOW=S.rooms;fillRoomSel();return}
+ const K=new Set(S.walls.map(ek));const has=(x1,z1,x2,z2)=>K.has(ek({x1,z1,x2,z2}));
  const seen=[...Array(NZ)].map(()=>Array(NX).fill(false));const regs=[];
  for(let z0=0;z0<NZ;z0++)for(let x0=0;x0<NX;x0++){if(seen[z0][x0])continue;const cells=[],q=[[x0,z0]];seen[z0][x0]=true;let leak=false;
   while(q.length){const [x,z]=q.pop();cells.push([x,z]);
@@ -106,7 +120,7 @@ const roomName=p=>(roomAtM(p.gx*SX,p.gy*SZ)||ROOMS_NOW.find(r=>r.id===p.room)||{
 // ---- structure meshes ----
 const matC={};const mat=(c,o={})=>{const k=c+JSON.stringify(o);return matC[k]||(matC[k]=new THREE.MeshStandardMaterial({color:c,roughness:.9,...o}))};
 const capMat=mat('#a8977c');
-function buildStruct(){struct.clear();
+function buildStruct(){struct.clear();const WH=BUILD?WALL_H:0.2;
  const tile=new THREE.BoxGeometry(1,0.05,1);
  for(let z=0;z<NZ;z++)for(let x=0;x<NX;x++){const r=CELL[z][x];
   // subtle checker tone difference inside rooms
@@ -115,11 +129,11 @@ function buildStruct(){struct.clear();
  for(const w of S.walls){const hz=w.z1===w.z2;
   const A=hz?(CELL[w.z1-1]||[])[w.x1]:(CELL[w.z1]||[])[w.x1-1], B=hz?(CELL[w.z1]||[])[w.x1]:(CELL[w.z1]||[])[w.x1];
   const len=1+WALL_T*.5;
-  [[A,-1],[B,1]].forEach(([r,sg])=>{const g=hz?new THREE.BoxGeometry(len,WALL_H,WALL_T/2):new THREE.BoxGeometry(WALL_T/2,WALL_H,len);
+  [[A,-1],[B,1]].forEach(([r,sg])=>{const g=hz?new THREE.BoxGeometry(len,WH,WALL_T/2):new THREE.BoxGeometry(WALL_T/2,WH,len);
    const m=new THREE.Mesh(g,mat(S.wallColor||(r?r.wall:'#f3ece0'),{roughness:.95}));
-   m.position.set((w.x1+w.x2)/2+(hz?0:sg*WALL_T/4),WALL_H/2,(w.z1+w.z2)/2+(hz?sg*WALL_T/4:0));m.castShadow=m.receiveShadow=true;struct.add(m)});
+   m.position.set((w.x1+w.x2)/2+(hz?0:sg*WALL_T/4),WH/2,(w.z1+w.z2)/2+(hz?sg*WALL_T/4:0));m.castShadow=m.receiveShadow=true;struct.add(m)});
   const c=new THREE.Mesh(hz?new THREE.BoxGeometry(len,0.04,WALL_T+.01):new THREE.BoxGeometry(WALL_T+.01,0.04,len),capMat);
-  c.position.set((w.x1+w.x2)/2,WALL_H+.02,(w.z1+w.z2)/2);struct.add(c)}}
+  c.position.set((w.x1+w.x2)/2,WH+.02,(w.z1+w.z2)/2);struct.add(c)}}
 
 // ---- furniture: simple 3D shapes per type ----
 function box(g,w,h,d,c,x=0,y=0,z=0,o){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),new THREE.MeshStandardMaterial({color:c,roughness:.75,...o}));
@@ -143,7 +157,7 @@ const furn=new THREE.Group();house.add(furn);
 const meshes=new Map();
 function build(){furn.clear();meshes.clear();for(const p of S.products){const g=new THREE.Group();(SHAPE[p.icon]||SHAPE.default)(g);if(p.color){const pc=new THREE.Color(p.color);g.traverse(o=>{if(o.isMesh){o.material=o.material.clone();o.material.color.lerp(pc,.75)}})}
  g.userData.p=p;place(g);furn.add(g);meshes.set(p,g)}if(SEL)select(S.products.includes(SEL)?SEL:null)}
-const place=g=>g.position.set(g.userData.p.gx*SX,0.05,g.userData.p.gy*SZ);
+const place=g=>{g.position.set(g.userData.p.gx*SX,0.05,g.userData.p.gy*SZ);g.rotation.y=-(g.userData.p.rot||0)*Math.PI/180};
 function rebuildAll(){regions();buildStruct();build()}
 
 // undo history (products + walls + rooms)
@@ -154,9 +168,10 @@ function updUndo(){undoBtn.disabled=!H.length}
 undoBtn.onclick=()=>{if(!H.length)return;const o=JSON.parse(H.pop());S.products=o.p;S.walls=o.w;S.rooms=o.r;if(o.wc)S.wallColor=o.wc;else delete S.wallColor;SEL=null;if(TOOL==='color')syncColor();closeCard();rebuildAll();save();updUndo()};
 
 // build mode + tools
-const DRAW=()=>TOOL==='wall'||TOOL==='erase';let BUILD=false,SEL=null,TOOL='move';const buildBtn=document.getElementById('buildBtn'),bar=document.getElementById('buildBar');
+const DRAW=()=>TOOL==='wall'||TOOL==='erase';var BUILD=false,SEL=null,TOOL='move';const buildBtn=document.getElementById('buildBtn'),bar=document.getElementById('buildBar');
 function select(p){const tint=(g,c)=>g&&g.traverse(o=>o.material&&o.material.emissive&&o.material.emissive.set(c));
- if(SEL)tint(meshes.get(SEL),0);SEL=p;if(p)tint(meshes.get(p),'#4a3c08');if(typeof cpanel!=='undefined'&&TOOL==='color')syncColor()}
+ if(SEL)tint(meshes.get(SEL),0);SEL=p;if(p)tint(meshes.get(p),'#4a3c08');if(typeof cpanel!=='undefined'&&TOOL==='color')syncColor();updRot()}
+function updRot(){const b=document.getElementById('rotBtn');if(b)b.classList.toggle('hidden',!(BUILD&&SEL&&TOOL==='move'))}
 const cpanel=document.getElementById('colorPanel'),$=id=>document.getElementById(id);
 const hex=c=>'#'+new THREE.Color(c).getHexString();
 function syncColor(){const p=SEL;$('cProd').classList.toggle('off',!p);$('cProdName').textContent=p?(p.icon||'📦')+' '+p.name:'הקישו על רהיט';
@@ -172,11 +187,12 @@ $('wallColor').addEventListener('input',e=>{S.wallColor=e.target.value;buildStru
 $('wallReset').onclick=()=>{if(S.wallColor){push();delete S.wallColor;buildStruct();save();syncColor()}};
 $('floorRoom').onchange=syncColor;
 $('floorColor').addEventListener('input',e=>{const r=S.rooms.find(r=>r.id===$('floorRoom').value);if(r){r.floor=e.target.value;regions();buildStruct()}});
-const TIPS={move:'גררו רהיט קיים על הרצפה כדי להזיז אותו',color:'הקישו על רהיט לצביעה · קירות ורצפה בלוח',wall:'גררו על הרצפה לציור קיר',erase:'לחצו/גררו על קיר למחיקה'};
+const TIPS={move:'גררו רהיט להזזה · בחרו רהיט ולחצו 🔄 לסיבוב',color:'הקישו על רהיט לצביעה · קירות ורצפה בלוח',wall:'גררו על הרצפה לציור קיר',erase:'לחצו/גררו על קיר למחיקה'};
 function setTool(t){TOOL=t;document.querySelectorAll('[data-tool]').forEach(b=>b.classList.toggle('on',b.dataset.tool===t));document.getElementById('tip').textContent=TIPS[t];cpanel.classList.toggle('hidden',t!=='color');if(t==='color')syncColor();
- ctl.touches.ONE=(t==='move'||t==='color')?THREE.TOUCH.ROTATE:null}
+ updRot();ctl.touches.ONE=(t==='move'||t==='color')?THREE.TOUCH.ROTATE:null}
 document.querySelectorAll('[data-tool]').forEach(b=>b.onclick=()=>setTool(b.dataset.tool));
-function setBuild(on){BUILD=on;buildBtn.classList.toggle('on',on);bar.classList.toggle('hidden',!on);grid.visible=on;closeCard();
+document.getElementById('rotBtn').onclick=()=>{if(!SEL)return;push();SEL.rot=((SEL.rot||0)+90)%360;place(meshes.get(SEL));save()};
+function setBuild(on){BUILD=on;buildStruct();buildBtn.classList.toggle('on',on);bar.classList.toggle('hidden',!on);grid.visible=on;closeCard();
  if(!on){select(null);clearPrev()}setTool('move');updUndo()}
 buildBtn.onclick=()=>setBuild(!BUILD);
 document.getElementById('doneBtn').onclick=()=>setBuild(false);
@@ -252,3 +268,5 @@ form.onsubmit=e=>{e.preventDefault();const r=ROOMS_NOW.find(x=>x.id===form.room.
   gx:+(r.cx/SX).toFixed(3),gy:+(r.cz/SZ).toFixed(3)});save();build();renderList();document.getElementById('formSheet').classList.add('hidden')};
 try{rebuildAll()}catch(e){console.error(e);S.walls=defaultWalls();S.rooms=defaultRooms();try{rebuildAll()}catch(e2){S.products=seedP();rebuildAll()}}
 save();setTool('move');updUndo();window.__homieOk=1;
+
+applyBackdrop(S.setting);document.getElementById('setBtn').onclick=()=>{S.setting=S.setting==='building'?'ground':'building';applyBackdrop(S.setting);save()};
