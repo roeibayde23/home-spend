@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="theme-color" content="#2f4a3a">
 <title>Homie</title>
-<link rel="stylesheet" href="styles.css?v=ux4">
+<link rel="stylesheet" href="styles.css?v=walls3">
 <script type="importmap">{"imports":{"three":"./vendor/three.module.js","three/addons/":"./vendor/addons/"}}</script>
 <script>window.__homieFail=function(m){if(document.getElementById('loadErr'))return;var d=document.createElement('div');d.id='loadErr';d.style.cssText='position:fixed;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;text-align:center;padding:24px;font:600 17px system-ui;color:#5a4632;z-index:999;pointer-events:auto';d.innerHTML='<div>לא הצלחנו לטעון את הבית — נסו לרענן</div><button onclick="location.reload()" style="padding:10px 20px;border-radius:12px;border:0;background:#5a4632;color:#fff;font:600 15px system-ui">רענון</button><small style="opacity:.5;font-weight:400">'+(m||'')+'</small>';document.body.appendChild(d)};
 window.addEventListener('error',function(e){if(!window.__homieOk)__homieFail(e.message)},true);
@@ -15,7 +15,7 @@ setTimeout(function(){if(!window.__homieOk)__homieFail('timeout')},12000);</scri
 <body>
 <header class="top">
   <h1 class="logo"><span class="mark">⌂</span>homie<i>.</i></h1>
-  <span><button id="setBtn" class="pill alt">🌳 קרקע</button> <button id="buildBtn" class="pill alt">✏️ עיצוב</button> <button id="spendBtn" class="pill">הוצאות</button></span>
+  <span><button id="wallsPill" class="pill alt"></button> <button id="setBtn" class="pill alt">🌳 קרקע</button> <button id="buildBtn" class="pill alt">✏️ עיצוב</button> <button id="spendBtn" class="pill">הוצאות</button></span>
 </header>
 <main id="stage"></main>
 <div id="hint" class="hint">גרירה — סיבוב · צביטה/גלגלת — זום · שתי אצבעות/קליק ימני — הזזה</div>
@@ -31,7 +31,7 @@ setTimeout(function(){if(!window.__homieOk)__homieFail('timeout')},12000);</scri
   <div class="crow"><span>רצפה</span><select id="floorRoom"></select><input type="color" id="floorColor"></div>
  </div>
  <span id="tip"></span>
- <div class="tools"><button class="tb" data-tool="move"><b>✋</b>הזז</button><button id="rotBtn" class="tb hidden"><b>🔄</b>סובב</button><button class="tb" data-tool="wall"><b>✏️</b>קיר</button><button class="tb" data-tool="erase"><b>🗑️</b>מחק</button><button class="tb" data-tool="color"><b>🎨</b>צבע</button><button id="lowBtn" class="tb"><b>🧱</b>קירות נמוכים</button><span class="sep"></span><button id="undoBtn" class="tb"><b>↩️</b>בטל</button><button id="doneBtn" class="tb done"><b>✔</b>סיום</button></div></div>
+ <div class="tools"><button class="tb" data-tool="move"><b>✋</b>הזז</button><button id="rotBtn" class="tb hidden"><b>🔄</b>סובב</button><button class="tb" data-tool="wall"><b>✏️</b>קיר</button><button class="tb" data-tool="erase"><b>🗑️</b>מחק</button><button class="tb" data-tool="color"><b>🎨</b>צבע</button><button id="wallsBtn" class="tb on" title="מצב קירות"></button><span class="sep"></span><button id="undoBtn" class="tb"><b>↩️</b>בטל</button><button id="doneBtn" class="tb done"><b>✔</b>סיום</button></div></div>
 <div id="card" class="card hidden"></div>
 <div id="confirm" class="sheet center hidden"><div class="dlg"><div id="confirmIcon" class="ce"></div><b id="confirmMsg"></b><div class="dbtns"><button id="confirmNo" class="mini">ביטול</button><button id="confirmYes" class="pill danger">אישור</button></div></div></div>
 <div id="formSheet" class="sheet hidden"><div class="sheet-in"><form id="addForm">
@@ -40,5 +40,5 @@ setTimeout(function(){if(!window.__homieOk)__homieFail('timeout')},12000);</scri
  <label>תאריך<input name="date" type="date"></label><label>חדר<select name="room" id="roomSel"></select></label>
  <label>סוג<select name="icon"><option>🛋️</option><option>📺</option><option>🧊</option><option>🍽️</option><option>🛏️</option><option>🧺</option><option>📦</option></select></label>
  <button class="pill" style="width:100%;margin-top:10px">שמור</button></form></div></div>
-<script type="module" src="app.js?v=ux4"></script>
+<script type="module" src="app.js?v=walls3"></script>
 </body></html>

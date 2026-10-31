@@ -126,13 +126,13 @@ const roomName=p=>(roomAtM(p.gx*SX,p.gy*SZ)||ROOMS_NOW.find(r=>r.id===p.room)||{
 // ---- structure meshes ----
 const matC={};const mat=(c,o={})=>{const k=c+JSON.stringify(o);return matC[k]||(matC[k]=new THREE.MeshStandardMaterial({color:c,roughness:.9,...o}))};
 const capMat=mat('#a8977c');
-function buildStruct(){struct.clear();const WH=BUILD?(S.lowWalls?0.9:WALL_H):0.2;
+function buildStruct(){struct.clear();const WH=S.wallMode==='full'?WALL_H:0.9;
  const tile=new THREE.BoxGeometry(1,0.05,1);
  for(let z=0;z<NZ;z++)for(let x=0;x<NX;x++){const r=CELL[z][x];
   // subtle checker tone difference inside rooms
   const base=new THREE.Color(r?r.floor:'#d6cfbf');if((x+z)%2)base.offsetHSL(0,0,-0.025);
   const m=new THREE.Mesh(tile,mat('#'+base.getHexString(),{roughness:.85}));m.position.set(x+.5,0.025,z+.5);m.receiveShadow=true;struct.add(m)}
- for(const w of S.walls){const hz=w.z1===w.z2;
+ if(S.wallMode!=='none')for(const w of S.walls){const hz=w.z1===w.z2;
   const A=hz?(CELL[w.z1-1]||[])[w.x1]:(CELL[w.z1]||[])[w.x1-1], B=hz?(CELL[w.z1]||[])[w.x1]:(CELL[w.z1]||[])[w.x1];
   const len=1+WALL_T*.5;
   [[A,-1],[B,1]].forEach(([r,sg])=>{const g=hz?new THREE.BoxGeometry(len,WH,WALL_T/2):new THREE.BoxGeometry(WALL_T/2,WH,len);
@@ -263,8 +263,12 @@ function askDelete(p){const d=$('confirm');$('confirmMsg').textContent=`למחו
  $('confirmYes').onclick=()=>{d.classList.add('hidden');push();S.products=S.products.filter(q=>q!==p);if(SEL===p)SEL=null;save();build()}}
 $('confirm').onclick=e=>{if(e.target.id==='confirm')$('confirm').classList.add('hidden')};
 // low walls toggle (design mode)
-const lowBtn=$('lowBtn');function updLow(){lowBtn.classList.toggle('on',!!S.lowWalls)}
-lowBtn.onclick=()=>{S.lowWalls=!S.lowWalls;updLow();buildStruct();save()};updLow();
+// wall modes (Sims-style): full → cutaway → none; works in view + design
+const WM=[['full','מלאים','🧱'],['cut','חתוכים','🪟'],['none','בלי קירות','⬜']];
+if(!WM.some(m=>m[0]===S.wallMode))S.wallMode=S.lowWalls?'cut':'cut';delete S.lowWalls;
+function updWM(){const m=WM.find(m=>m[0]===S.wallMode);$('wallsBtn').innerHTML=`<b>${m[2]}</b>${m[1]}`;$('wallsPill').textContent=`${m[2]} ${m[1]}`}
+function cycleWM(){const i=WM.findIndex(m=>m[0]===S.wallMode);S.wallMode=WM[(i+1)%WM.length][0];updWM();buildStruct();save()}
+$('wallsBtn').onclick=$('wallsPill').onclick=cycleWM;updWM();
 // price card
 const card=document.getElementById('card');
 function openCard(p){card.innerHTML=`<button class="icon x">✕</button><div class="ce">${p.icon||'📦'}</div><b>${esc(p.name)}</b><div class="p">${kc(p.price)}</div><div class="d">${p.date?new Date(p.date).toLocaleDateString('he-IL'):''} · ${esc(roomName(p))}</div><button class="del">🗑️ מחק</button>`;
