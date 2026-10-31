@@ -31,20 +31,42 @@ const fill=new THREE.DirectionalLight('#dfe8ff',0.35); fill.position.set(-8,6,-6
 const ground=new THREE.Mesh(new THREE.CircleGeometry(30,64),new THREE.MeshStandardMaterial({color:'#e4dccb',roughness:1}));
 ground.rotation.x=-Math.PI/2; ground.position.y=-0.02; ground.receiveShadow=true; scene.add(ground);
 const backdrop=new THREE.Group();scene.add(backdrop);
-function applyBackdrop(set){backdrop.clear();const bm=(c)=>new THREE.MeshStandardMaterial({color:c,roughness:1});
- if(set==='building'){scene.background.set('#a9b8c8');scene.fog.color.set('#a9b8c8');scene.fog.near=30;scene.fog.far=80;ground.material.color.set('#7d8794');ground.position.y=-8;
+function applyBackdrop(set){backdrop.clear();backdrop.userData.tick=null;const bm=(c)=>new THREE.MeshStandardMaterial({color:c,roughness:1});
+ if(set==='building'){scene.background.set('#9fd0f2');scene.fog.color.set('#c4def0');scene.fog.near=30;scene.fog.far=80;ground.material.color.set('#7d8794');ground.position.y=-8;
   // flush: slab/tower match the house footprint (10×8) — no strip between scenery and floor
   const slab=new THREE.Mesh(new THREE.BoxGeometry(10.12,0.6,8.12),bm('#c9c6bf'));slab.position.y=-0.3;slab.receiveShadow=true;backdrop.add(slab);
   const tower=new THREE.Mesh(new THREE.BoxGeometry(10.12,8,8.12),bm('#d8d4cc'));tower.position.y=-4.6;backdrop.add(tower);
   const win=bm('#5d7290');
-  [[-12,-9,5,9,5,1.5],[11,-10,6,9,5,3],[-13,4,4,9,6,-1],[12,5,5,9,5,2],[0,-13,8,9,4,4],[-6,13,5,9,4,-2],[7,12,5,9,4,1]].forEach(([x,z,w,h,d,top])=>{h=8+top;const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),bm('#8f9aa6'));m.position.set(x,top-h/2,z);backdrop.add(m);
+  // soft clouds
+  const cm=new THREE.MeshStandardMaterial({color:'#ffffff',roughness:1,transparent:true,opacity:.92});
+  [[-14,13,-18],[10,15,-20],[18,12,-6],[-20,14,4],[2,16,-26]].forEach(([x,y,z])=>{for(let k=0;k<4;k++){const c=new THREE.Mesh(new THREE.SphereGeometry(1.4+k%2*.6,12,8),cm);c.position.set(x+k*1.6-2.4,y+(k%2)*.4,z);c.scale.set(1.3,.6,1);backdrop.add(c)}});
+  // birds: small dark V's gliding in circles
+  const bmat=new THREE.MeshBasicMaterial({color:'#2d3340',side:THREE.DoubleSide});
+  const flock=new THREE.Group();backdrop.add(flock);
+  for(let k=0;k<7;k++){const b=new THREE.Group();[-1,1].forEach(sg=>{const w=new THREE.Mesh(new THREE.PlaneGeometry(.45,.09),bmat);w.position.x=sg*.2;w.rotation.z=sg*.35;b.add(w)});
+   b.userData={r:9+k*1.3,h:7+(k%3)*1.2,o:k*.9,sp:.00012+k*.00001};flock.add(b)}
+  backdrop.userData.tick=t=>flock.children.forEach(b=>{const u=b.userData,a=u.o+t*u.sp;b.position.set(Math.cos(a)*u.r,u.h+Math.sin(t*.002+u.o)*.3,Math.sin(a)*u.r);b.rotation.y=-a;
+   b.children.forEach((w,i)=>w.rotation.z=(i?1:-1)*(.35+Math.sin(t*.012+u.o)*.3))});
+  [[-12,-9,5,9,5,1.5],[11,-10,6,9,5,3],[-13,4,4,9,6,-1],[12,5,5,9,5,2],[0,-13,8,9,4,4],[-6,13,5,9,4,-2],[7,12,5,9,4,1]].forEach(([x,z,w,h,d,top])=>{h=8+top;const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),bm(['#c9b8a4','#a9b7c4','#d8c9b0','#9fb0a8'][Math.abs(x+z)%4|0]));m.position.set(x,top-h/2,z);backdrop.add(m);
    const r=new THREE.Mesh(new THREE.BoxGeometry(w+.2,.3,d+.2),bm('#6f7883'));r.position.set(x,top,z);backdrop.add(r);
    for(let k=0;k<3;k++){const wn=new THREE.Mesh(new THREE.BoxGeometry(w*.8,.5,d+.05),win);wn.position.set(x,top-1.2-k*1.6,z);backdrop.add(wn)}});
  }else{scene.background.set('#bfe0f2');scene.fog.color.set('#cfe6d0');scene.fog.near=35;scene.fog.far=75;ground.material.color.set('#6fa64a');ground.position.y=-0.02;
-  const path=new THREE.Mesh(new THREE.BoxGeometry(1.4,.05,6),bm('#c9b48e'));path.position.set(0,0,7);backdrop.add(path);
-  [[-8,-6,1.3],[8,-6.5,1.5],[-8.5,4.5,1.2],[8.5,5,1.4],[-2,-8.5,1.3],[3.5,-8.5,1.1],[-4,8,1.2],[4.5,8.5,1.4]].forEach(([x,z,s])=>{
+  // roads + paths: asphalt street in front and to one side, beige walkway to the door
+  const asph=bm('#5d6268'),line=bm('#e9e4d4'),walk=bm('#d6c6a2');
+  const road=(x,z,w,d)=>{const m=new THREE.Mesh(new THREE.BoxGeometry(w,.04,d),asph);m.position.set(x,0,z);m.receiveShadow=true;backdrop.add(m)};
+  road(0,9.2,60,3);road(-10.5,0,3,60);
+  for(let x=-28;x<28;x+=3){const m=new THREE.Mesh(new THREE.BoxGeometry(1.2,.05,.12),line);m.position.set(x,.005,9.2);backdrop.add(m)}
+  for(let z=-28;z<28;z+=3){const m=new THREE.Mesh(new THREE.BoxGeometry(.12,.05,1.2),line);m.position.set(-10.5,.005,z);backdrop.add(m)}
+  const path=new THREE.Mesh(new THREE.BoxGeometry(1.4,.05,3.7),walk);path.position.set(0,0,5.85);backdrop.add(path);
+  const side=new THREE.Mesh(new THREE.BoxGeometry(60,.05,1),walk);side.position.set(0,0,7.3);backdrop.add(side);
+  // a few trees, many bushes
+  [[8.5,-6.5,1.4],[-7.5,-7,1.2],[9,4.5,1.3]].forEach(([x,z,s])=>{
    const tr=new THREE.Mesh(new THREE.CylinderGeometry(.18*s,.25*s,1.6*s,8),bm('#7a5534'));tr.position.set(x,.8*s,z);tr.castShadow=true;backdrop.add(tr);
-   const t=new THREE.Mesh(new THREE.SphereGeometry(1.1*s,16,12),bm('#3f7d3a'));t.position.set(x,2.2*s,z);t.scale.set(1,1.25,1);t.castShadow=true;backdrop.add(t)});}
+   const t=new THREE.Mesh(new THREE.SphereGeometry(1.1*s,16,12),bm('#3f7d3a'));t.position.set(x,2.2*s,z);t.scale.set(1,1.25,1);t.castShadow=true;backdrop.add(t)});
+  const bush=['#4e8a3e','#5f9a48','#6d8f3a','#3f7a3c'];
+  [[-6,-5.2,.6],[-4.5,-5.4,.5],[-2,-5.3,.55],[1,-5.5,.5],[3.5,-5.3,.6],[6,-5.2,.5],[6.2,-2,.55],[6.3,1,.5],[6.1,3.2,.6],[-6.2,-2.5,.5],[-6.3,.5,.55],[-6.1,3,.5],
+   [-3,5.6,.5],[-1.4,5.5,.4],[1.4,5.5,.4],[3,5.6,.5],[-8.5,3,.7],[8,-2.5,.7],[-3,-8.5,.8],[4,-8.8,.7],[12,-3,.9],[-13,-6,.9],[13,6,.8]].forEach(([x,z,r],i)=>{
+   const m=new THREE.Mesh(new THREE.SphereGeometry(r,12,8),bm(bush[i%bush.length]));m.position.set(x,r*.6,z);m.scale.set(1.2,.8,1);m.castShadow=true;backdrop.add(m)});}
  const b=document.getElementById('setBtn');if(b)b.textContent=set==='building'?'🏢 בניין':'🌳 קרקע'}
 const house=new THREE.Group(); house.position.set(-CX,0,-CZ); scene.add(house);
 const struct=new THREE.Group(); house.add(struct);
@@ -66,7 +88,7 @@ function resize(){const w=innerWidth,h=innerHeight;renderer.setSize(w,h);cam.asp
 addEventListener('resize',resize); window.visualViewport&&visualViewport.addEventListener('resize',resize); addEventListener('orientationchange',()=>setTimeout(()=>{resize();try{resetCam()}catch(e){}},300)); resize();
 function resetCam(){const v=homeView();cam.position.copy(v.pos);ctl.target.copy(v.target);ctl.update()}
 resetCam();
-renderer.setAnimationLoop(()=>{ctl.update();renderer.render(scene,cam)});
+const TICK=[];renderer.setAnimationLoop(t=>{ctl.update();try{camSide()}catch(e){}TICK.forEach(f=>f(t));backdrop.userData.tick&&backdrop.userData.tick(t);renderer.render(scene,cam)});
 setTimeout(()=>document.getElementById('hint').style.opacity=0,6000);
 // ===== Stage 2+3: data, structure, furniture, build, undo =====
 // Saved gx/gy are old-grid units (house 0..9 × 0..9) → meters x=gx*10/9, z=gy*8/9
@@ -126,13 +148,20 @@ const roomName=p=>(roomAtM(p.gx*SX,p.gy*SZ)||ROOMS_NOW.find(r=>r.id===p.room)||{
 // ---- structure meshes ----
 const matC={};const mat=(c,o={})=>{const k=c+JSON.stringify(o);return matC[k]||(matC[k]=new THREE.MeshStandardMaterial({color:c,roughness:.9,...o}))};
 const capMat=mat('#a8977c');
-function buildStruct(){struct.clear();const WH=S.wallMode==='full'?WALL_H:0.9;
+function camDir(){const d=cam.position.clone().sub(ctl.target);return {x:d.x,z:d.z}}
+// in cutaway mode, rebuild walls when the camera swings to another side of the house
+let camSig='';function camSide(){if(S.wallMode!=='far')return;const d=camDir(),s=(d.x>0)+''+(d.z>0);if(s!==camSig){camSig=s;buildStruct()}}
+function buildStruct(){struct.clear();const STUB=0.22,cd=camDir();
  const tile=new THREE.BoxGeometry(1,0.05,1);
  for(let z=0;z<NZ;z++)for(let x=0;x<NX;x++){const r=CELL[z][x];
   // subtle checker tone difference inside rooms
   const base=new THREE.Color(r?r.floor:'#d6cfbf');if((x+z)%2)base.offsetHSL(0,0,-0.025);
   const m=new THREE.Mesh(tile,mat('#'+base.getHexString(),{roughness:.85}));m.position.set(x+.5,0.025,z+.5);m.receiveShadow=true;struct.add(m)}
- if(S.wallMode!=='none')for(const w of S.walls){const hz=w.z1===w.z2;
+ for(const w of S.walls){const hz=w.z1===w.z2;
+  // per-wall height: stub everywhere / full everywhere / Sims cutaway (far perimeter tall, rest stubs)
+  const per=hz?(w.z1===0||w.z1===NZ):(w.x1===0||w.x1===NX);
+  const far=per&&(((w.x1+w.x2)/2-CX)*cd.x+((w.z1+w.z2)/2-CZ)*cd.z)<0;
+  const WH=S.wallMode==='full'?WALL_H:S.wallMode==='far'?(far?WALL_H:STUB):STUB;
   const A=hz?(CELL[w.z1-1]||[])[w.x1]:(CELL[w.z1]||[])[w.x1-1], B=hz?(CELL[w.z1]||[])[w.x1]:(CELL[w.z1]||[])[w.x1];
   const len=1+WALL_T*.5;
   [[A,-1],[B,1]].forEach(([r,sg])=>{const g=hz?new THREE.BoxGeometry(len,WH,WALL_T/2):new THREE.BoxGeometry(WALL_T/2,WH,len);
@@ -264,10 +293,10 @@ function askDelete(p){const d=$('confirm');$('confirmMsg').textContent=`למחו
 $('confirm').onclick=e=>{if(e.target.id==='confirm')$('confirm').classList.add('hidden')};
 // low walls toggle (design mode)
 // wall modes (Sims-style): full → cutaway → none; works in view + design
-const WM=[['full','מלאים','🧱'],['cut','חתוכים','🪟'],['none','בלי קירות','⬜']];
-if(!WM.some(m=>m[0]===S.wallMode))S.wallMode=S.lowWalls?'cut':'cut';delete S.lowWalls;
+const WM=[['stub','פס נמוך','➖'],['far','רחוקים','🏠'],['full','מלאים','🧱']];
+if(!WM.some(m=>m[0]===S.wallMode))S.wallMode='far';delete S.lowWalls;
 function updWM(){const m=WM.find(m=>m[0]===S.wallMode);$('wallsBtn').innerHTML=`<b>${m[2]}</b>${m[1]}`;$('wallsPill').textContent=`${m[2]} ${m[1]}`}
-function cycleWM(){const i=WM.findIndex(m=>m[0]===S.wallMode);S.wallMode=WM[(i+1)%WM.length][0];updWM();buildStruct();save()}
+function cycleWM(){const i=WM.findIndex(m=>m[0]===S.wallMode);S.wallMode=WM[(i+1)%WM.length][0];camSig='';updWM();buildStruct();save()}
 $('wallsBtn').onclick=$('wallsPill').onclick=cycleWM;updWM();
 // price card
 const card=document.getElementById('card');
