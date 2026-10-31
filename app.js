@@ -13,7 +13,7 @@ const WALL_H=2.6, WALL_T=0.12, CX=5, CZ=4;
 const NX=10,NZ=8;
 const PAL=[{wall:'#efe3cf',floor:'#b98d63'},{wall:'#d3dfcc',floor:'#d8cfbf'},{wall:'#e4d2bd',floor:'#c7a27c'},{wall:'#cddde3',floor:'#e9e2d6'},{wall:'#e8d6d9',floor:'#bfa58a'},{wall:'#dcd6e6',floor:'#d3c0a4'}];
 const stage=document.getElementById('stage');
-const renderer=new THREE.WebGLRenderer({antialias:true});
+let renderer;try{renderer=new THREE.WebGLRenderer({antialias:true})}catch(e){window.__homieFail&&__homieFail('WebGL');throw e}
 renderer.setPixelRatio(Math.min(devicePixelRatio,2));
 renderer.shadowMap.enabled=true; renderer.shadowMap.type=THREE.PCFSoftShadowMap;
 renderer.toneMapping=THREE.ACESFilmicToneMapping; renderer.toneMappingExposure=1.05;
@@ -47,7 +47,7 @@ ctl.minDistance=3; ctl.maxDistance=45; ctl.maxPolarAngle=Math.PI/2-0.05;
 ctl.screenSpacePanning=false;
 ctl.touches={ONE:THREE.TOUCH.ROTATE,TWO:THREE.TOUCH.DOLLY_PAN};
 function resize(){const w=innerWidth,h=innerHeight;renderer.setSize(w,h);cam.aspect=w/h;cam.updateProjectionMatrix()}
-addEventListener('resize',resize); resize();
+addEventListener('resize',resize); window.visualViewport&&visualViewport.addEventListener('resize',resize); addEventListener('orientationchange',()=>setTimeout(()=>{resize();try{resetCam()}catch(e){}},300)); resize();
 function resetCam(){const v=homeView();cam.position.copy(v.pos);ctl.target.copy(v.target);ctl.update()}
 resetCam();
 renderer.setAnimationLoop(()=>{ctl.update();renderer.render(scene,cam)});
@@ -70,7 +70,10 @@ const defaultRooms=()=>ROOMS.map((r,i)=>({id:r.id,name:r.name,ax:r.x+1,az:r.z+1,
 let S;try{S=JSON.parse(localStorage.getItem(KEY))}catch(e){}
 if(!S||typeof S!=='object')S={};
 if(!Array.isArray(S.products))S.products=seedP();
-if(!Array.isArray(S.walls)){S.walls=defaultWalls();S.rooms=defaultRooms()}   // migrate fixed house
+const okW=w=>w&&[w.x1,w.z1,w.x2,w.z2].every(n=>typeof n==='number'&&isFinite(n)&&n>=0&&n<=Math.max(NX,NZ));
+if(!Array.isArray(S.walls)||!S.walls.length||!S.walls.every(okW)){S.walls=defaultWalls();S.rooms=defaultRooms()}
+if(Array.isArray(S.rooms)&&!S.rooms.every(r=>r&&typeof r.ax==='number'&&typeof r.az==='number'))S.rooms=defaultRooms();
+S.products=S.products.filter(p=>p&&typeof p==='object');
 if(!Array.isArray(S.rooms))S.rooms=defaultRooms();
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
 const kc=n=>(+n||0).toLocaleString('cs-CZ').replace(/\s/g,',')+' Kč';
@@ -247,4 +250,5 @@ document.getElementById('cancelAdd').onclick=()=>document.getElementById('formSh
 form.onsubmit=e=>{e.preventDefault();const r=ROOMS_NOW.find(x=>x.id===form.room.value)||{id:'',cx:5,cz:4};push();
  S.products.push({id:Date.now(),name:form.name.value.trim()||'מוצר',price:+form.price.value||0,date:form.date.value,room:r.id,icon:form.icon.value,
   gx:+(r.cx/SX).toFixed(3),gy:+(r.cz/SZ).toFixed(3)});save();build();renderList();document.getElementById('formSheet').classList.add('hidden')};
-rebuildAll();save();setTool('move');updUndo();
+try{rebuildAll()}catch(e){console.error(e);S.walls=defaultWalls();S.rooms=defaultRooms();try{rebuildAll()}catch(e2){S.products=seedP();rebuildAll()}}
+save();setTool('move');updUndo();window.__homieOk=1;
