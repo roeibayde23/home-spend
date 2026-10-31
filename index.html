@@ -4,14 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="theme-color" content="#2f4a3a">
-<title>HOME SPEND 3D</title>
+<title>Homie</title>
 <link rel="stylesheet" href="styles.css">
 <script type="importmap">{"imports":{"three":"https://unpkg.com/three@0.160.0/build/three.module.js","three/addons/":"https://unpkg.com/three@0.160.0/examples/jsm/"}}</script>
 </head>
 <body>
 <header class="top">
-  <h1>HOME SPEND <small>3D</small></h1>
-  <span><button id="buildBtn" class="pill alt">🧱 בנייה</button> <button id="resetCam" class="pill alt">🎯</button> <button id="spendBtn" class="pill">הוצאות</button></span>
+  <h1 class="logo"><span class="mark">⌂</span>homie<i>.</i></h1>
+  <span><button id="buildBtn" class="pill alt">✏️ עיצוב</button> <button id="spendBtn" class="pill">הוצאות</button></span>
 </header>
 <main id="stage"></main>
 <div id="hint" class="hint">גרירה — סיבוב · צביטה/גלגלת — זום · שתי אצבעות/קליק ימני — הזזה</div>
@@ -19,7 +19,14 @@
   <div class="sheet-h"><h2>הוצאות</h2><button class="icon" id="closeSheet">✕</button></div>
   <ul id="list"></ul><div class="total">סה״כ: <b id="total"></b></div>
   <button id="addBtn" class="pill" style="margin-top:12px;width:100%">＋ הוסף מוצר</button></div></div>
-<div id="buildBar" class="bbar hidden"><div class="tools"><button class="pill alt" data-tool="move">📦 רהיט</button><button class="pill alt" data-tool="wall">✏️ קיר</button><button class="pill alt" data-tool="erase">🧽 מחק קיר</button><button id="undoBtn" class="pill alt">↩️</button><button id="zin" class="pill alt">＋</button><button id="zout" class="pill alt">－</button><button id="doneBtn" class="pill">✔ סיום</button></div><span id="tip"></span></div>
+<div id="buildBar" class="bbar hidden">
+ <div id="colorPanel" class="cpanel hidden">
+  <div class="crow" id="cProd"><span id="cProdName">בחרו רהיט</span><input type="color" id="prodColor"><button class="mini" id="prodReset">מקורי</button></div>
+  <div class="crow"><span>קירות</span><input type="color" id="wallColor"><button class="mini" id="wallReset">מקורי</button></div>
+  <div class="crow"><span>רצפה</span><select id="floorRoom"></select><input type="color" id="floorColor"></div>
+ </div>
+ <span id="tip"></span>
+ <div class="tools"><button class="tb" data-tool="move"><b>✋</b>הזז</button><button class="tb" data-tool="wall"><b>✏️</b>קיר</button><button class="tb" data-tool="erase"><b>🧽</b>מחק קיר</button><button class="tb" data-tool="color"><b>🎨</b>צבע</button><span class="sep"></span><button id="undoBtn" class="tb"><b>↩️</b>בטל</button><button id="doneBtn" class="tb done"><b>✔</b>סיום</button></div></div>
 <div id="card" class="card hidden"></div>
 <div id="formSheet" class="sheet hidden"><div class="sheet-in"><form id="addForm">
  <div class="sheet-h"><h2>מוצר חדש</h2><button type="button" class="icon" id="cancelAdd">✕</button></div>

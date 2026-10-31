@@ -21,4 +21,21 @@ h1{font-size:18px;letter-spacing:1px}h1 small{font-size:11px;color:#8a8;}
 .card .x{position:absolute;top:6px;inset-inline-end:8px}.card .ce{font-size:32px}.card .p{font-size:20px;color:#2f4a3a;margin:4px 0}.card .d{font-size:12px;color:#888}
 .card .del{margin-top:10px;border:0;border-radius:12px;padding:7px 14px;background:#f1ddd3;color:#8a3b22}
 #addForm label{display:block;margin:6px 0;font-size:13px}#addForm input,#addForm select{display:block;width:100%;padding:8px;border:1px solid #ddd;border-radius:10px;font-size:16px;margin-top:3px}
-.bbar{flex-direction:column;gap:6px}.bbar .tools{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}.bbar .pill{padding:7px 10px;font-size:13px}.bbar .pill.on{background:#c48f6a;color:#fff}#tip{font-size:12px;color:#6b6b5e}
+
+.logo{display:flex;align-items:center;gap:7px;font-family:ui-rounded,"SF Pro Rounded","Nunito",system-ui,sans-serif;font-weight:800;font-size:24px;letter-spacing:-.5px;color:#2f4a3a;direction:ltr}
+.logo .mark{display:grid;place-items:center;width:30px;height:30px;border-radius:9px;background:linear-gradient(135deg,#2f4a3a,#4f6e58);color:#f4efe6;font-size:18px;box-shadow:0 2px 6px #2f4a3a40}
+.logo i{color:#c48f6a;font-style:normal}
+.bbar{flex-direction:column;align-items:stretch;gap:8px;inset-inline:10px;padding:10px;border-radius:22px;background:rgba(255,251,245,.92);backdrop-filter:blur(14px);box-shadow:0 8px 30px #2f3a3326,0 0 0 1px #2f3a330f}
+.bbar .tools{display:flex;align-items:stretch;gap:2px}
+.tb{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;border:0;background:none;border-radius:14px;padding:6px 2px;font-size:11px;color:#5d6660;font-family:inherit}
+.tb b{font-size:18px;font-weight:400;filter:grayscale(.3)}
+.tb.on{background:#2f4a3a;color:#fff}.tb.on b{filter:none}
+.tb:disabled{opacity:.35}.tb.done{color:#2f4a3a;font-weight:600}
+.sep{width:1px;background:#2f3a331a;margin:6px 2px}
+#tip{text-align:center;font-size:12px;color:#7a7f73}
+.cpanel{display:flex;flex-direction:column;gap:6px;padding:4px 4px 8px;border-bottom:1px solid #2f3a3314}
+.cpanel.hidden{display:none}
+.crow{display:flex;align-items:center;gap:8px;font-size:13px}.crow>span{flex:1}.crow.off{opacity:.55}
+.crow input[type=color]{width:38px;height:30px;border:0;padding:0;border-radius:8px;background:none}
+.crow select{padding:5px;border-radius:8px;border:1px solid #ddd;font-size:13px}
+.mini{border:0;background:#eee6d8;border-radius:10px;padding:5px 9px;font-size:11px;color:#5d6660}

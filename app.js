@@ -51,7 +51,6 @@ addEventListener('resize',resize); resize();
 function resetCam(){const v=homeView();cam.position.copy(v.pos);ctl.target.copy(v.target);ctl.update()}
 resetCam();
 renderer.setAnimationLoop(()=>{ctl.update();renderer.render(scene,cam)});
-document.getElementById('resetCam').onclick=resetCam;
 setTimeout(()=>document.getElementById('hint').style.opacity=0,6000);
 // ===== Stage 2+3: data, structure, furniture, build, undo =====
 // Saved gx/gy are old-grid units (house 0..9 × 0..9) → meters x=gx*10/9, z=gy*8/9
@@ -114,7 +113,7 @@ function buildStruct(){struct.clear();
   const A=hz?(CELL[w.z1-1]||[])[w.x1]:(CELL[w.z1]||[])[w.x1-1], B=hz?(CELL[w.z1]||[])[w.x1]:(CELL[w.z1]||[])[w.x1];
   const len=1+WALL_T*.5;
   [[A,-1],[B,1]].forEach(([r,sg])=>{const g=hz?new THREE.BoxGeometry(len,WALL_H,WALL_T/2):new THREE.BoxGeometry(WALL_T/2,WALL_H,len);
-   const m=new THREE.Mesh(g,mat(r?r.wall:'#f3ece0',{roughness:.95}));
+   const m=new THREE.Mesh(g,mat(S.wallColor||(r?r.wall:'#f3ece0'),{roughness:.95}));
    m.position.set((w.x1+w.x2)/2+(hz?0:sg*WALL_T/4),WALL_H/2,(w.z1+w.z2)/2+(hz?sg*WALL_T/4:0));m.castShadow=m.receiveShadow=true;struct.add(m)});
   const c=new THREE.Mesh(hz?new THREE.BoxGeometry(len,0.04,WALL_T+.01):new THREE.BoxGeometry(WALL_T+.01,0.04,len),capMat);
   c.position.set((w.x1+w.x2)/2,WALL_H+.02,(w.z1+w.z2)/2);struct.add(c)}}
@@ -139,32 +138,45 @@ const SHAPE={
  default:g=>box(g,.7,.5,.7,'#b39a7a',0,.05,0)};
 const furn=new THREE.Group();house.add(furn);
 const meshes=new Map();
-function build(){furn.clear();meshes.clear();for(const p of S.products){const g=new THREE.Group();(SHAPE[p.icon]||SHAPE.default)(g);
+function build(){furn.clear();meshes.clear();for(const p of S.products){const g=new THREE.Group();(SHAPE[p.icon]||SHAPE.default)(g);if(p.color){const pc=new THREE.Color(p.color);g.traverse(o=>{if(o.isMesh){o.material=o.material.clone();o.material.color.lerp(pc,.75)}})}
  g.userData.p=p;place(g);furn.add(g);meshes.set(p,g)}if(SEL)select(S.products.includes(SEL)?SEL:null)}
 const place=g=>g.position.set(g.userData.p.gx*SX,0.05,g.userData.p.gy*SZ);
 function rebuildAll(){regions();buildStruct();build()}
 
 // undo history (products + walls + rooms)
-const H=[];const snap=()=>JSON.stringify({p:S.products,w:S.walls,r:S.rooms});
+const H=[];const snap=()=>JSON.stringify({p:S.products,w:S.walls,r:S.rooms,wc:S.wallColor||null});
 function push(){H.push(snap());if(H.length>20)H.shift();updUndo()}
 const undoBtn=document.getElementById('undoBtn');
 function updUndo(){undoBtn.disabled=!H.length}
-undoBtn.onclick=()=>{if(!H.length)return;const o=JSON.parse(H.pop());S.products=o.p;S.walls=o.w;S.rooms=o.r;SEL=null;closeCard();rebuildAll();save();updUndo()};
+undoBtn.onclick=()=>{if(!H.length)return;const o=JSON.parse(H.pop());S.products=o.p;S.walls=o.w;S.rooms=o.r;if(o.wc)S.wallColor=o.wc;else delete S.wallColor;SEL=null;if(TOOL==='color')syncColor();closeCard();rebuildAll();save();updUndo()};
 
 // build mode + tools
-let BUILD=false,SEL=null,TOOL='move';const buildBtn=document.getElementById('buildBtn'),bar=document.getElementById('buildBar');
+const DRAW=()=>TOOL==='wall'||TOOL==='erase';let BUILD=false,SEL=null,TOOL='move';const buildBtn=document.getElementById('buildBtn'),bar=document.getElementById('buildBar');
 function select(p){const tint=(g,c)=>g&&g.traverse(o=>o.material&&o.material.emissive&&o.material.emissive.set(c));
- if(SEL)tint(meshes.get(SEL),0);SEL=p;if(p)tint(meshes.get(p),'#4a3c08')}
-const TIPS={move:'גררו רהיט על הרצפה',wall:'גררו על הרצפה לציור קיר',erase:'לחצו/גררו על קיר למחיקה'};
-function setTool(t){TOOL=t;document.querySelectorAll('[data-tool]').forEach(b=>b.classList.toggle('on',b.dataset.tool===t));document.getElementById('tip').textContent=TIPS[t];
- ctl.touches.ONE=t==='move'?THREE.TOUCH.ROTATE:null}
+ if(SEL)tint(meshes.get(SEL),0);SEL=p;if(p)tint(meshes.get(p),'#4a3c08');if(typeof cpanel!=='undefined'&&TOOL==='color')syncColor()}
+const cpanel=document.getElementById('colorPanel'),$=id=>document.getElementById(id);
+const hex=c=>'#'+new THREE.Color(c).getHexString();
+function syncColor(){const p=SEL;$('cProd').classList.toggle('off',!p);$('cProdName').textContent=p?(p.icon||'📦')+' '+p.name:'הקישו על רהיט';
+ $('prodColor').disabled=!p;$('prodColor').value=p&&p.color?p.color:'#b39a7a';
+ $('wallColor').value=S.wallColor||hex((S.rooms[0]||{}).wall||'#f3ece0');
+ const fr=$('floorRoom'),cur=fr.value;fr.innerHTML=S.rooms.map(r=>`<option value="${r.id}">${esc(r.name)}</option>`).join('');if(cur&&S.rooms.some(r=>r.id===cur))fr.value=cur;
+ const r=S.rooms.find(r=>r.id===fr.value);$('floorColor').value=r?hex(r.floor):'#d6cfbf'}
+let cBefore=null;const cStart=()=>{if(!cBefore)cBefore=snap()},cEnd=()=>{if(cBefore){H.push(cBefore);if(H.length>20)H.shift();cBefore=null;save();updUndo()}};
+['prodColor','wallColor','floorColor'].forEach(id=>{$(id).addEventListener('input',cStart);$(id).addEventListener('change',cEnd)});
+$('prodColor').addEventListener('input',e=>{if(!SEL)return;SEL.color=e.target.value;build()});
+$('prodReset').onclick=()=>{if(SEL&&SEL.color){push();delete SEL.color;build();save();syncColor()}};
+$('wallColor').addEventListener('input',e=>{S.wallColor=e.target.value;buildStruct()});
+$('wallReset').onclick=()=>{if(S.wallColor){push();delete S.wallColor;buildStruct();save();syncColor()}};
+$('floorRoom').onchange=syncColor;
+$('floorColor').addEventListener('input',e=>{const r=S.rooms.find(r=>r.id===$('floorRoom').value);if(r){r.floor=e.target.value;regions();buildStruct()}});
+const TIPS={move:'גררו רהיט קיים על הרצפה כדי להזיז אותו',color:'הקישו על רהיט לצביעה · קירות ורצפה בלוח',wall:'גררו על הרצפה לציור קיר',erase:'לחצו/גררו על קיר למחיקה'};
+function setTool(t){TOOL=t;document.querySelectorAll('[data-tool]').forEach(b=>b.classList.toggle('on',b.dataset.tool===t));document.getElementById('tip').textContent=TIPS[t];cpanel.classList.toggle('hidden',t!=='color');if(t==='color')syncColor();
+ ctl.touches.ONE=(t==='move'||t==='color')?THREE.TOUCH.ROTATE:null}
 document.querySelectorAll('[data-tool]').forEach(b=>b.onclick=()=>setTool(b.dataset.tool));
 function setBuild(on){BUILD=on;buildBtn.classList.toggle('on',on);bar.classList.toggle('hidden',!on);grid.visible=on;closeCard();
  if(!on){select(null);clearPrev()}setTool('move');updUndo()}
 buildBtn.onclick=()=>setBuild(!BUILD);
 document.getElementById('doneBtn').onclick=()=>setBuild(false);
-const zoom=f=>{const v=cam.position.clone().sub(ctl.target).multiplyScalar(f);const L=v.length();if(L<ctl.minDistance||L>ctl.maxDistance)return;cam.position.copy(ctl.target).add(v)};
-document.getElementById('zin').onclick=()=>zoom(.8);document.getElementById('zout').onclick=()=>zoom(1.25);
 
 // wall preview
 const prevG=new THREE.Group();house.add(prevG);
@@ -186,12 +198,12 @@ function floorPt(e){setNdc(e);return rc.ray.intersectPlane(plane,hit)?{x:hit.x+C
 let down=null,drag=null,wd=null,pts=0;
 function cancelWall(){if(wd){if(wd.erased){const o=JSON.parse(wd.before);S.walls=o.w;S.rooms=o.r;rebuildAll()}wd=null;clearPrev()}}
 cv.addEventListener('pointerdown',e=>{pts++;if(pts>1){if(drag){drag=null}ctl.enabled=true;cancelWall();return}
- down={x:e.clientX,y:e.clientY,p:BUILD&&TOOL!=='move'?null:pick(e)};
- if(BUILD&&TOOL!=='move'){const f=floorPt(e);if(!f)return;ctl.enabled=false;
+ down={x:e.clientX,y:e.clientY,p:BUILD&&DRAW()?null:pick(e)};
+ if(BUILD&&DRAW()){const f=floorPt(e);if(!f)return;ctl.enabled=false;
   if(TOOL==='wall'){wd={a:snapPt(f),segs:[],before:snap()}}
   else{wd={erased:0,before:snap()};eraseAt(f)}
   return}
- if(BUILD&&down.p){const f=floorPt(e);if(f){select(down.p);drag={p:down.p,ox:down.p.gx*SX-f.x,oz:down.p.gy*SZ-f.z,before:snap(),moved:false};ctl.enabled=false;cv.setPointerCapture(e.pointerId)}}},{capture:true});
+ if(BUILD&&down.p&&TOOL==='color'){select(down.p)}else if(BUILD&&down.p){const f=floorPt(e);if(f){select(down.p);drag={p:down.p,ox:down.p.gx*SX-f.x,oz:down.p.gy*SZ-f.z,before:snap(),moved:false};ctl.enabled=false;cv.setPointerCapture(e.pointerId)}}},{capture:true});
 function eraseAt(f){const w=nearestWall(f);if(w){S.walls=S.walls.filter(q=>q!==w);wd.erased++;regions();buildStruct()}}
 cv.addEventListener('pointermove',e=>{
  if(wd){const f=floorPt(e);if(!f)return;if(TOOL==='wall'){wd.segs=segLine(wd.a,snapPt(f));showPrev(wd.segs,'#2f7a4a')}else eraseAt(f);return}
@@ -199,7 +211,7 @@ cv.addEventListener('pointermove',e=>{
  const sn=v=>Math.round(v*10)/10,cl=(v,a,b)=>Math.max(a,Math.min(b,v));
  const x=cl(sn(f.x+drag.ox),.3,9.7),z=cl(sn(f.z+drag.oz),.3,7.7);
  drag.p.gx=+(x/SX).toFixed(3);drag.p.gy=+(z/SZ).toFixed(3);drag.moved=true;place(meshes.get(drag.p))});
-function up(e){pts=Math.max(0,pts-1);if(BUILD&&TOOL!=='move')ctl.enabled=true;
+function up(e){pts=Math.max(0,pts-1);if(BUILD&&DRAW())ctl.enabled=true;
  if(wd){const d=wd;wd=null;clearPrev();
   if(TOOL==='wall'&&d.segs.length){const K=new Set(S.walls.map(ek));const add=d.segs.filter(s=>!K.has(ek(s)));if(add.length){H.push(d.before);if(H.length>20)H.shift();S.walls.push(...add);rebuildAll();save()}}
   else if(TOOL==='erase'&&d.erased){H.push(d.before);if(H.length>20)H.shift();rebuildAll();save()}
