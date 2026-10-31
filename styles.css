@@ -51,3 +51,29 @@ h1{font-size:18px;letter-spacing:1px}h1 small{font-size:11px;color:#8a8;}
 .dlg{background:#fffaf2;border-radius:18px;padding:18px 20px;width:250px;text-align:center;box-shadow:0 8px 30px #0003;display:flex;flex-direction:column;gap:8px}
 .dlg .ce{font-size:34px}.dbtns{display:flex;gap:8px;justify-content:center;margin-top:6px}.dbtns button{flex:1;font-size:14px;padding:9px}
 .pill.danger{background:#b8542f}
+
+/* ===== ui2 chrome polish ===== */
+.top{padding:calc(env(safe-area-inset-top) + 10px) 14px 10px;background:linear-gradient(#f6f1e8f2,#f6f1e8d9);border-bottom:1px solid #2f3a3312;gap:10px}
+.top .actions{display:flex;gap:6px;align-items:center}
+.top .pill{height:34px;padding:0 14px;border-radius:17px;font:600 13px system-ui;display:inline-flex;align-items:center;gap:5px;box-shadow:0 1px 2px #2f3a3322}
+.top .pill.alt{background:#fff;color:#2f4a3a;box-shadow:inset 0 0 0 1px #2f4a3a26}
+.top .pill.on{background:#c48f6a;color:#fff;box-shadow:none}
+.logo{gap:8px;font-family:ui-rounded,"SF Pro Rounded","Nunito",system-ui,sans-serif;font-size:25px;font-weight:900;letter-spacing:-1.2px;line-height:1}
+.logo .mark{width:32px;height:32px;border-radius:10px;background:linear-gradient(140deg,#3d5e4b,#22382b);color:#f4e7d4;box-shadow:0 3px 8px #22382b40,inset 0 1px 0 #ffffff22}
+.logo .word{background:linear-gradient(90deg,#22382b,#3f6450);-webkit-background-clip:text;background-clip:text;color:transparent}
+.logo i{color:#c48f6a;font-size:30px;margin-inline-start:-6px;transform:translateY(-1px)}
+.chips{position:fixed;z-index:5;top:calc(env(safe-area-inset-top) + 62px);inset-inline-start:12px;display:flex;align-items:center;background:#fffaf2e8;backdrop-filter:blur(10px);border-radius:14px;padding:3px;box-shadow:0 2px 10px #2f3a331f,0 0 0 1px #2f3a330d}
+.chip{border:0;background:none;font:600 12px system-ui;color:#3e4a42;padding:6px 10px;border-radius:11px}
+.chip:active{background:#2f4a3a14}.csep{width:1px;height:16px;background:#2f3a3322}
+/* design bar */
+.bbar{inset-inline:10px;padding:8px;gap:6px;border-radius:24px;background:#fffbf5f2;box-shadow:0 10px 30px #2f3a332e,0 0 0 1px #2f3a3310}
+#tip{font-size:11.5px;color:#6f766c;padding:2px 6px 0}
+.bbar .tools{gap:3px;background:#f1eadf;border-radius:18px;padding:4px}
+.tb{min-width:46px;padding:6px 4px 5px;border-radius:14px;font-size:10.5px;font-weight:600;color:#55605a;gap:3px;transition:background .15s,color .15s}
+.tb b{font-size:17px;filter:none}
+.tb.on{background:#2f4a3a;color:#fff;box-shadow:0 3px 8px #2f4a3a55}
+#wallsBtn.on{background:#fff;color:#2f4a3a;box-shadow:inset 0 0 0 1.5px #2f4a3a55}
+.tb.done{background:#c48f6a;color:#fff}
+.sep{margin:6px 3px;background:#2f3a3326}
+.card{top:calc(env(safe-area-inset-top) + 110px)}
+.bbar .tools .tb{min-width:0;flex:1 1 0;padding-inline:1px;font-size:10px}.tb b{font-size:16px}

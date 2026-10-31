@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="theme-color" content="#2f4a3a">
 <title>Homie</title>
-<link rel="stylesheet" href="styles.css?v=wm2">
+<link rel="stylesheet" href="styles.css?v=ui2">
 <script type="importmap">{"imports":{"three":"./vendor/three.module.js","three/addons/":"./vendor/addons/"}}</script>
 <script>window.__homieFail=function(m){if(document.getElementById('loadErr'))return;var d=document.createElement('div');d.id='loadErr';d.style.cssText='position:fixed;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;text-align:center;padding:24px;font:600 17px system-ui;color:#5a4632;z-index:999;pointer-events:auto';d.innerHTML='<div>לא הצלחנו לטעון את הבית — נסו לרענן</div><button onclick="location.reload()" style="padding:10px 20px;border-radius:12px;border:0;background:#5a4632;color:#fff;font:600 15px system-ui">רענון</button><small style="opacity:.5;font-weight:400">'+(m||'')+'</small>';document.body.appendChild(d)};
 window.addEventListener('error',function(e){if(!window.__homieOk)__homieFail(e.message)},true);
@@ -14,9 +14,10 @@ setTimeout(function(){if(!window.__homieOk)__homieFail('timeout')},12000);</scri
 </head>
 <body>
 <header class="top">
-  <h1 class="logo"><span class="mark">⌂</span>homie<i>.</i></h1>
-  <span><button id="wallsPill" class="pill alt"></button> <button id="setBtn" class="pill alt">🌳 קרקע</button> <button id="buildBtn" class="pill alt">✏️ עיצוב</button> <button id="spendBtn" class="pill">הוצאות</button></span>
+  <h1 class="logo"><span class="mark"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M3.5 11 12 4l8.5 7v8.5a1 1 0 0 1-1 1h-5v-6h-5v6h-5a1 1 0 0 1-1-1z" fill="currentColor"/></svg></span><span class="word">homie</span><i>.</i></h1>
+  <span class="actions"><button id="buildBtn" class="pill alt">✏️ עיצוב</button><button id="spendBtn" class="pill">הוצאות</button></span>
 </header>
+<div class="chips"><button id="setBtn" class="chip">🌳 קרקע</button><span class="csep"></span><button id="wallsPill" class="chip"></button></div>
 <main id="stage"></main>
 <div id="hint" class="hint">גרירה — סיבוב · צביטה/גלגלת — זום · שתי אצבעות/קליק ימני — הזזה</div>
 <div id="sheet" class="sheet hidden"><div class="sheet-in">
@@ -40,5 +41,5 @@ setTimeout(function(){if(!window.__homieOk)__homieFail('timeout')},12000);</scri
  <label>תאריך<input name="date" type="date"></label><label>חדר<select name="room" id="roomSel"></select></label>
  <label>סוג<select name="icon"><option>🛋️</option><option>📺</option><option>🧊</option><option>🍽️</option><option>🛏️</option><option>🧺</option><option>📦</option></select></label>
  <button class="pill" style="width:100%;margin-top:10px">שמור</button></form></div></div>
-<script type="module" src="app.js?v=wm2"></script>
+<script type="module" src="app.js?v=ui2"></script>
 </body></html>
