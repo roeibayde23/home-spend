@@ -40,3 +40,5 @@ h1{font-size:18px;letter-spacing:1px}h1 small{font-size:11px;color:#8a8;}
 .crow select{padding:5px;border-radius:8px;border:1px solid #ddd;font-size:13px}
 .mini{border:0;background:#eee6d8;border-radius:10px;padding:5px 9px;font-size:11px;color:#5d6660}
 .tb.hidden{display:none}
+
+.bbar .tools{overflow-x:auto;scrollbar-width:none}.bbar .tools .tb{flex-shrink:0}.tb.dim{opacity:.5}

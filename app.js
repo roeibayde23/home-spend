@@ -32,13 +32,20 @@ const ground=new THREE.Mesh(new THREE.CircleGeometry(30,64),new THREE.MeshStanda
 ground.rotation.x=-Math.PI/2; ground.position.y=-0.02; ground.receiveShadow=true; scene.add(ground);
 const backdrop=new THREE.Group();scene.add(backdrop);
 function applyBackdrop(set){backdrop.clear();const bm=(c)=>new THREE.MeshStandardMaterial({color:c,roughness:1});
- if(set==='building'){scene.background.set('#dfe4e8');scene.fog.color.set('#dfe4e8');ground.material.color.set('#bfc2c2');ground.position.y=-0.32;
-  const slab=new THREE.Mesh(new THREE.BoxGeometry(12.4,0.3,10.4),bm('#d2d0cb'));slab.position.y=-0.16;slab.receiveShadow=true;backdrop.add(slab);
-  const par=[[0,-5.3,12.6,.2],[0,5.3,12.6,.2],[-6.3,0,.2,10.8],[6.3,0,.2,10.8]];par.forEach(([x,z,w,d])=>{const m=new THREE.Mesh(new THREE.BoxGeometry(w,.5,d),bm('#c4c1ba'));m.position.set(x,.1,z);backdrop.add(m)});
-  [[-16,-14,6,9,5],[14,-16,7,13,6],[-20,6,5,7,6],[20,4,6,10,5],[2,-22,8,16,6],[-8,-24,5,11,5]].forEach(([x,z,w,h,d])=>{const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),bm('#b9c0c6'));m.position.set(x,h/2-6,z);backdrop.add(m)});
- }else{scene.background.set('#e9efe0');scene.fog.color.set('#e9efe0');ground.material.color.set('#a9c08a');ground.position.y=-0.02;
-  const yard=new THREE.Mesh(new THREE.BoxGeometry(11,.04,9),bm('#cfc4ac'));yard.position.y=-0.01;backdrop.add(yard);
-  [[-8,-6],[8,-7],[-9,5],[9,6],[0,-9]].forEach(([x,z])=>{const t=new THREE.Mesh(new THREE.SphereGeometry(1,16,12),bm('#7f9c62'));t.position.set(x,1,z);t.scale.set(1,1.2,1);t.castShadow=true;backdrop.add(t)});}
+ if(set==='building'){scene.background.set('#a9b8c8');scene.fog.color.set('#a9b8c8');scene.fog.near=30;scene.fog.far=80;ground.material.color.set('#7d8794');ground.position.y=-8;
+  const slab=new THREE.Mesh(new THREE.BoxGeometry(13,0.6,11),bm('#c9c6bf'));slab.position.y=-0.31;slab.receiveShadow=true;backdrop.add(slab);
+  const tower=new THREE.Mesh(new THREE.BoxGeometry(12.6,8,10.6),bm('#d8d4cc'));tower.position.y=-4.6;backdrop.add(tower);
+  const par=[[0,-5.4,13,.25],[0,5.4,13,.25],[-6.4,0,.25,11],[6.4,0,.25,11]];par.forEach(([x,z,w,d])=>{const m=new THREE.Mesh(new THREE.BoxGeometry(w,.6,d),bm('#9e9a92'));m.position.set(x,.3,z);m.castShadow=true;backdrop.add(m)});
+  const win=bm('#5d7290');
+  [[-12,-9,5,9,5,1.5],[11,-10,6,9,5,3],[-13,4,4,9,6,-1],[12,5,5,9,5,2],[0,-13,8,9,4,4],[-6,13,5,9,4,-2],[7,12,5,9,4,1]].forEach(([x,z,w,h,d,top])=>{h=8+top;const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),bm('#8f9aa6'));m.position.set(x,top-h/2,z);backdrop.add(m);
+   const r=new THREE.Mesh(new THREE.BoxGeometry(w+.2,.3,d+.2),bm('#6f7883'));r.position.set(x,top,z);backdrop.add(r);
+   for(let k=0;k<3;k++){const wn=new THREE.Mesh(new THREE.BoxGeometry(w*.8,.5,d+.05),win);wn.position.set(x,top-1.2-k*1.6,z);backdrop.add(wn)}});
+ }else{scene.background.set('#bfe0f2');scene.fog.color.set('#cfe6d0');scene.fog.near=35;scene.fog.far=75;ground.material.color.set('#6fa64a');ground.position.y=-0.02;
+  const yard=new THREE.Mesh(new THREE.BoxGeometry(11,.04,9),bm('#d8cdb2'));yard.position.y=-0.01;backdrop.add(yard);
+  const path=new THREE.Mesh(new THREE.BoxGeometry(1.4,.05,6),bm('#c9b48e'));path.position.set(0,0,7.5);backdrop.add(path);
+  [[-8,-6,1.3],[8,-6.5,1.5],[-8.5,4.5,1.2],[8.5,5,1.4],[-2,-8.5,1.3],[3.5,-8.5,1.1],[-4,8,1.2],[4.5,8.5,1.4]].forEach(([x,z,s])=>{
+   const tr=new THREE.Mesh(new THREE.CylinderGeometry(.18*s,.25*s,1.6*s,8),bm('#7a5534'));tr.position.set(x,.8*s,z);tr.castShadow=true;backdrop.add(tr);
+   const t=new THREE.Mesh(new THREE.SphereGeometry(1.1*s,16,12),bm('#3f7d3a'));t.position.set(x,2.2*s,z);t.scale.set(1,1.25,1);t.castShadow=true;backdrop.add(t)});}
  const b=document.getElementById('setBtn');if(b)b.textContent=set==='building'?'🏢 בניין':'🌳 קרקע'}
 const house=new THREE.Group(); house.position.set(-CX,0,-CZ); scene.add(house);
 const struct=new THREE.Group(); house.add(struct);
@@ -171,7 +178,7 @@ undoBtn.onclick=()=>{if(!H.length)return;const o=JSON.parse(H.pop());S.products=
 const DRAW=()=>TOOL==='wall'||TOOL==='erase';var BUILD=false,SEL=null,TOOL='move';const buildBtn=document.getElementById('buildBtn'),bar=document.getElementById('buildBar');
 function select(p){const tint=(g,c)=>g&&g.traverse(o=>o.material&&o.material.emissive&&o.material.emissive.set(c));
  if(SEL)tint(meshes.get(SEL),0);SEL=p;if(p)tint(meshes.get(p),'#4a3c08');if(typeof cpanel!=='undefined'&&TOOL==='color')syncColor();updRot()}
-function updRot(){const b=document.getElementById('rotBtn');if(b)b.classList.toggle('hidden',!(BUILD&&SEL&&TOOL==='move'))}
+function updRot(){const b=document.getElementById('rotBtn');if(b){b.classList.toggle('hidden',!(BUILD&&TOOL==='move'));b.classList.toggle('dim',!SEL)}}
 const cpanel=document.getElementById('colorPanel'),$=id=>document.getElementById(id);
 const hex=c=>'#'+new THREE.Color(c).getHexString();
 function syncColor(){const p=SEL;$('cProd').classList.toggle('off',!p);$('cProdName').textContent=p?(p.icon||'📦')+' '+p.name:'הקישו על רהיט';
@@ -187,11 +194,12 @@ $('wallColor').addEventListener('input',e=>{S.wallColor=e.target.value;buildStru
 $('wallReset').onclick=()=>{if(S.wallColor){push();delete S.wallColor;buildStruct();save();syncColor()}};
 $('floorRoom').onchange=syncColor;
 $('floorColor').addEventListener('input',e=>{const r=S.rooms.find(r=>r.id===$('floorRoom').value);if(r){r.floor=e.target.value;regions();buildStruct()}});
-const TIPS={move:'גררו רהיט להזזה · בחרו רהיט ולחצו 🔄 לסיבוב',color:'הקישו על רהיט לצביעה · קירות ורצפה בלוח',wall:'גררו על הרצפה לציור קיר',erase:'לחצו/גררו על קיר למחיקה'};
+const TIPS={move:'גררו רהיט להזזה · הקישו עליו שוב או 🔄 לסיבוב',color:'הקישו על רהיט לצביעה · קירות ורצפה בלוח',wall:'גררו על הרצפה לציור קיר',erase:'לחצו/גררו על קיר למחיקה'};
 function setTool(t){TOOL=t;document.querySelectorAll('[data-tool]').forEach(b=>b.classList.toggle('on',b.dataset.tool===t));document.getElementById('tip').textContent=TIPS[t];cpanel.classList.toggle('hidden',t!=='color');if(t==='color')syncColor();
  updRot();ctl.touches.ONE=(t==='move'||t==='color')?THREE.TOUCH.ROTATE:null}
 document.querySelectorAll('[data-tool]').forEach(b=>b.onclick=()=>setTool(b.dataset.tool));
-document.getElementById('rotBtn').onclick=()=>{if(!SEL)return;push();SEL.rot=((SEL.rot||0)+90)%360;place(meshes.get(SEL));save()};
+function rotSel(){if(!SEL){document.getElementById('tip').textContent='הקישו קודם על רהיט ואז 🔄';return}push();SEL.rot=((SEL.rot||0)+90)%360;place(meshes.get(SEL));save();updUndo&&updUndo()}
+document.getElementById('rotBtn').onclick=rotSel;
 function setBuild(on){BUILD=on;buildStruct();buildBtn.classList.toggle('on',on);bar.classList.toggle('hidden',!on);grid.visible=on;closeCard();
  if(!on){select(null);clearPrev()}setTool('move');updUndo()}
 buildBtn.onclick=()=>setBuild(!BUILD);
@@ -222,7 +230,7 @@ cv.addEventListener('pointerdown',e=>{pts++;if(pts>1){if(drag){drag=null}ctl.ena
   if(TOOL==='wall'){wd={a:snapPt(f),segs:[],before:snap()}}
   else{wd={erased:0,before:snap()};eraseAt(f)}
   return}
- if(BUILD&&down.p&&TOOL==='color'){select(down.p)}else if(BUILD&&down.p){const f=floorPt(e);if(f){select(down.p);drag={p:down.p,ox:down.p.gx*SX-f.x,oz:down.p.gy*SZ-f.z,before:snap(),moved:false};ctl.enabled=false;cv.setPointerCapture(e.pointerId)}}},{capture:true});
+ if(down)down.wasSel=SEL;if(BUILD&&down.p&&TOOL==='color'){select(down.p)}else if(BUILD&&down.p){const f=floorPt(e);if(f){select(down.p);drag={p:down.p,ox:down.p.gx*SX-f.x,oz:down.p.gy*SZ-f.z,before:snap(),moved:false};ctl.enabled=false;cv.setPointerCapture(e.pointerId)}}},{capture:true});
 function eraseAt(f){const w=nearestWall(f);if(w){S.walls=S.walls.filter(q=>q!==w);wd.erased++;regions();buildStruct()}}
 cv.addEventListener('pointermove',e=>{
  if(wd){const f=floorPt(e);if(!f)return;if(TOOL==='wall'){wd.segs=segLine(wd.a,snapPt(f));showPrev(wd.segs,'#2f7a4a')}else eraseAt(f);return}
@@ -238,7 +246,7 @@ function up(e){pts=Math.max(0,pts-1);if(BUILD&&DRAW())ctl.enabled=true;
  if(drag){const d=drag;drag=null;ctl.enabled=true;
   if(d.moved){H.push(d.before);if(H.length>20)H.shift();const r=roomAtM(d.p.gx*SX,d.p.gy*SZ);if(r)d.p.room=r.id;save();updUndo()}}
  if(down&&Math.hypot(e.clientX-down.x,e.clientY-down.y)<8){
-  if(down.p){if(!BUILD)openCard(down.p);else select(down.p)}else{select(null);closeCard()}}
+  if(down.p){if(!BUILD)openCard(down.p);else if(TOOL==='move'&&down.wasSel===down.p)rotSel();else select(down.p)}else{select(null);closeCard()}}
  down=null}
 cv.addEventListener('pointerup',up);cv.addEventListener('pointercancel',e=>{pts=Math.max(0,pts-1);ctl.enabled=true;cancelWall();if(drag){S.products=JSON.parse(drag.before).p;drag=null;ctl.enabled=true;build()}down=null});
 
