@@ -77,3 +77,28 @@ h1{font-size:18px;letter-spacing:1px}h1 small{font-size:11px;color:#8a8;}
 .sep{margin:6px 3px;background:#2f3a3326}
 .card{top:calc(env(safe-area-inset-top) + 110px)}
 .bbar .tools .tb{min-width:0;flex:1 1 0;padding-inline:1px;font-size:10px}.tb b{font-size:16px}
+
+/* shop1 */
+.top .actions{gap:5px}.top .pill{padding:0 11px}
+.shop{max-height:78%}
+.stabs{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-bottom:8px}
+.stab{flex-shrink:0;display:flex;align-items:center;gap:5px;border:0;border-radius:14px;padding:7px 12px;background:#f1eadf;color:#3e4a42;font:600 13px system-ui}
+.stab b{font-weight:400}.stab.on{background:#2f4a3a;color:#fff}
+.sgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.sitem{display:flex;flex-direction:column;align-items:center;gap:3px;border:0;border-radius:16px;padding:12px 4px;background:#fff;box-shadow:0 0 0 1px #2f3a3314,0 2px 6px #2f3a330d;font:600 12px system-ui;color:#2f3a33}
+.sitem .si{font-size:28px}.sitem small{color:#8a7a60;font-weight:500;font-size:11px}
+.sitem:active{background:#f6efe3}
+.srow{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #2f3a3310;font-size:15px}.srow>span{flex:1}
+.srow b{min-width:56px;text-align:center}
+.step{width:38px;height:38px;border-radius:12px;border:0;background:#2f4a3a;color:#fff;font-size:20px}.step:disabled{opacity:.3}
+#editForm label{display:block;margin:6px 0;font-size:13px}#editForm input{display:block;width:100%;padding:8px;border:1px solid #ddd;border-radius:10px;font-size:16px;margin-top:3px}#editForm .dbtns{margin-top:12px}#editForm .dbtns .pill{flex:1;padding:10px}.card .edit{background:#e3ece5;color:#2f4a3a}
+
+/* shop2 */
+.ibtn{width:34px;height:34px;border-radius:17px;border:0;display:grid;place-items:center;background:#fff;color:#2f4a3a;box-shadow:inset 0 0 0 1px #2f4a3a26,0 1px 2px #2f3a3322}
+.ibtn:disabled{opacity:.35}
+#shopBtn{background:linear-gradient(140deg,#d19c75,#b97d57);color:#fff;box-shadow:0 2px 6px #b97d5755}
+.sitem img.si{width:72px;height:72px;object-fit:contain}
+.srng{display:flex;align-items:center;gap:8px;font-size:12px;color:#55605a}.srng span{width:58px}.srng input{flex:1;accent-color:#2f4a3a}.srng i{width:38px;font-style:normal;text-align:end;font-size:11px}
+.cpanel.off .srng{opacity:.45}
+.tb b{font-size:17px;line-height:20px}
+.emeta{font-size:12px;color:#8a7a60;font-weight:500;margin-inline-start:6px}

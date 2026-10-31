@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="theme-color" content="#2f4a3a">
 <title>Homie</title>
-<link rel="stylesheet" href="styles.css?v=ui2">
+<link rel="stylesheet" href="styles.css?v=shop2">
 <script type="importmap">{"imports":{"three":"./vendor/three.module.js","three/addons/":"./vendor/addons/"}}</script>
 <script>window.__homieFail=function(m){if(document.getElementById('loadErr'))return;var d=document.createElement('div');d.id='loadErr';d.style.cssText='position:fixed;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;text-align:center;padding:24px;font:600 17px system-ui;color:#5a4632;z-index:999;pointer-events:auto';d.innerHTML='<div>לא הצלחנו לטעון את הבית — נסו לרענן</div><button onclick="location.reload()" style="padding:10px 20px;border-radius:12px;border:0;background:#5a4632;color:#fff;font:600 15px system-ui">רענון</button><small style="opacity:.5;font-weight:400">'+(m||'')+'</small>';document.body.appendChild(d)};
 window.addEventListener('error',function(e){if(!window.__homieOk)__homieFail(e.message)},true);
@@ -15,7 +15,7 @@ setTimeout(function(){if(!window.__homieOk)__homieFail('timeout')},12000);</scri
 <body>
 <header class="top">
   <h1 class="logo"><span class="mark"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M3.5 11 12 4l8.5 7v8.5a1 1 0 0 1-1 1h-5v-6h-5v6h-5a1 1 0 0 1-1-1z" fill="currentColor"/></svg></span><span class="word">homie</span><i>.</i></h1>
-  <span class="actions"><button id="buildBtn" class="pill alt">✏️ עיצוב</button><button id="spendBtn" class="pill">הוצאות</button></span>
+  <span class="actions"><button id="undoBtn" class="ibtn" title="בטל" aria-label="בטל"><svg viewBox="0 0 24 24" width="18" height="18"><path d="M9 7 4 12l5 5M4.5 12H15a5 5 0 0 1 0 10h-3" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" transform="translate(0,-3)"/></svg></button><button id="shopBtn" class="ibtn" title="חנות" aria-label="חנות"><svg viewBox="0 0 24 24" width="19" height="19"><path d="M5 8h14l-1.2 11.2a2 2 0 0 1-2 1.8H8.2a2 2 0 0 1-2-1.8z" fill="currentColor" opacity=".9"/><path d="M9 10V7a3 3 0 0 1 6 0v3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button><button id="buildBtn" class="pill alt">✏️ עיצוב</button><button id="spendBtn" class="pill">הוצאות</button></span>
 </header>
 <div class="chips"><button id="setBtn" class="chip">🌳 קרקע</button><span class="csep"></span><button id="wallsPill" class="chip"></button></div>
 <main id="stage"></main>
@@ -31,15 +31,35 @@ setTimeout(function(){if(!window.__homieOk)__homieFail('timeout')},12000);</scri
   <div class="crow"><span>קירות</span><input type="color" id="wallColor"><button class="mini" id="wallReset">מקורי</button></div>
   <div class="crow"><span>רצפה</span><select id="floorRoom"></select><input type="color" id="floorColor"></div>
  </div>
+ <div id="scalePanel" class="cpanel hidden">
+  <div class="crow"><span id="sProd">הקישו על רהיט</span><button class="mini" id="scReset">מקורי</button></div>
+  <label class="srng"><span>הגדלה</span><input type="range" id="scAll" min="50" max="250" step="5"><i id="scAllV"></i></label>
+  <label class="srng"><span>↔ רוחב</span><input type="range" id="scX" min="50" max="300" step="5"><i id="scXV"></i></label>
+  <label class="srng"><span>↕ עומק</span><input type="range" id="scZ" min="50" max="300" step="5"><i id="scZV"></i></label>
+  <label class="srng"><span>⬆ גובה</span><input type="range" id="scY" min="50" max="250" step="5"><i id="scYV"></i></label>
+ </div>
  <span id="tip"></span>
- <div class="tools"><button class="tb" data-tool="move"><b>✋</b>הזז</button><button id="rotBtn" class="tb hidden"><b>🔄</b>סובב</button><button class="tb" data-tool="wall"><b>✏️</b>קיר</button><button class="tb" data-tool="erase"><b>🗑️</b>מחק</button><button class="tb" data-tool="color"><b>🎨</b>צבע</button><button id="wallsBtn" class="tb on" title="מצב קירות"></button><span class="sep"></span><button id="undoBtn" class="tb"><b>↩️</b>בטל</button><button id="doneBtn" class="tb done"><b>✔</b>סיום</button></div></div>
+ <div class="tools"><button class="tb" data-tool="move"><b>✥</b>מיקום</button><button id="rotBtn" class="tb hidden"><b>🔄</b>סובב</button><button class="tb" data-tool="wall"><b>✏️</b>קיר</button><button class="tb" data-tool="erase"><b>🗑️</b>מחק</button><button class="tb" data-tool="scale"><b>⤢</b>גודל</button><button class="tb" data-tool="color"><b>🎨</b>צבע</button><button id="sizeBtn" class="tb"><b>📐</b>בית</button><span class="sep"></span><button id="doneBtn" class="tb done"><b>✔</b>סיום</button></div></div>
 <div id="card" class="card hidden"></div>
+<div id="editSheet" class="sheet hidden"><div class="sheet-in"><form id="editForm">
+ <div class="sheet-h"><h2><span id="editIcon"></span> עריכת פריט <small id="editMeta" class="emeta"></small></h2><button type="button" class="icon" id="editCancel">✕</button></div>
+ <label>שם<input name="name" required></label><label>מחיר (Kč)<input name="price" type="number" inputmode="numeric"></label><label>תאריך קנייה<input name="date" type="date"></label>
+ <div class="dbtns"><button type="button" class="pill danger" id="editDel">🗑️ מחק</button><button class="pill">שמור</button></div></form></div></div>
+<div id="shopSheet" class="sheet hidden"><div class="sheet-in shop">
+ <div class="sheet-h"><h2>🛍️ חנות רהיטים</h2><button class="icon" id="closeShop">✕</button></div>
+ <div class="stabs" id="shopTabs"></div><div class="sgrid" id="shopGrid"></div>
+ <p class="muted">בחרו פריט — נמלא את הפרטים ותוכלו לעדכן מחיר לפני השמירה</p></div></div>
+<div id="sizeSheet" class="sheet hidden"><div class="sheet-in">
+ <div class="sheet-h"><h2>📐 גודל הבית</h2><button class="icon" id="closeSize">✕</button></div>
+ <div class="srow"><span>רוחב</span><button class="step" id="wMinus">−</button><b><span id="sizeW"></span> מ׳</b><button class="step" id="wPlus">+</button></div>
+ <div class="srow"><span>עומק</span><button class="step" id="dMinus">−</button><b><span id="sizeD"></span> מ׳</b><button class="step" id="dPlus">+</button></div>
+ <p class="muted">שטח: <span id="sizeArea"></span> מ״ר · הבית גדל ב־2 מ׳ בכל לחיצה. השטח החדש פתוח — ציירו קירות כדי ליצור חדרים.</p></div></div>
 <div id="confirm" class="sheet center hidden"><div class="dlg"><div id="confirmIcon" class="ce"></div><b id="confirmMsg"></b><div class="dbtns"><button id="confirmNo" class="mini">ביטול</button><button id="confirmYes" class="pill danger">אישור</button></div></div></div>
 <div id="formSheet" class="sheet hidden"><div class="sheet-in"><form id="addForm">
- <div class="sheet-h"><h2>מוצר חדש</h2><button type="button" class="icon" id="cancelAdd">✕</button></div>
+ <div class="sheet-h"><h2 id="formTitle">מוצר חדש</h2><button type="button" class="icon" id="cancelAdd">✕</button></div>
  <label>שם<input name="name" required></label><label>מחיר (Kč)<input name="price" type="number" inputmode="numeric" required></label>
  <label>תאריך<input name="date" type="date"></label><label>חדר<select name="room" id="roomSel"></select></label>
- <label>סוג<select name="icon"><option>🛋️</option><option>📺</option><option>🧊</option><option>🍽️</option><option>🛏️</option><option>🧺</option><option>📦</option></select></label>
+ <label>סוג<select name="icon"><option>🛋️</option><option>📺</option><option>🧊</option><option>🍽️</option><option>🛏️</option><option>🧺</option><option>🛋</option><option>🪑</option><option>🗄️</option><option>🪞</option><option>🛌</option><option>💡</option><option>🪴</option><option>🍳</option><option>🗃️</option><option>🚽</option><option>🛁</option><option>🚿</option><option>🪥</option><option>📦</option></select></label>
  <button class="pill" style="width:100%;margin-top:10px">שמור</button></form></div></div>
-<script type="module" src="app.js?v=ui2"></script>
+<script type="module" src="app.js?v=shop2"></script>
 </body></html>
