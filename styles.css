@@ -112,3 +112,5 @@ h1{font-size:18px;letter-spacing:1px}h1 small{font-size:11px;color:#8a8;}
 .selctl .sc b{font-weight:400;font-size:15px}.selctl .sc.on{background:#b8743f;color:#fff}.selctl .sc.x{background:none;color:#999;padding:7px 6px}
 .card{width:200px;padding:12px 12px 10px}
 .card .edit.mini2{position:absolute;top:6px;inset-inline-start:8px;margin:0;border:0;border-radius:10px;padding:4px 8px;font-size:11px;background:#f3e6d5;color:#8a5a33}
+
+.kitrow{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin:10px 0;padding:8px 10px;background:#f3e6d5;border-radius:12px;font-size:13px;color:#8a5a33}.kitrow.hidden{display:none}.kitrow label{display:flex!important;align-items:center;gap:4px;margin:0!important}.kitrow input{width:auto!important;display:inline!important;accent-color:#b8743f}

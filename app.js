@@ -117,7 +117,7 @@ const okW=w=>w&&[w.x1,w.z1,w.x2,w.z2].every(n=>typeof n==='number'&&isFinite(n)&
 if(!Array.isArray(S.walls)||!S.walls.every(okW)){S.walls=[];S.rooms=defaultRooms()}
 if(S.setting!=='building')S.setting='ground';
 if(Array.isArray(S.rooms)&&!S.rooms.every(r=>r&&typeof r.ax==='number'&&typeof r.az==='number'))S.rooms=defaultRooms();
-S.products=S.products.filter(p=>p&&typeof p==='object');
+S.products=S.products.filter(p=>p&&typeof p==='object');{const u=new Set();S.products.forEach((p,i)=>{if(p.id==null||u.has(p.id))p.id=Date.now()+i*7+Math.floor(Math.random()*1e5);u.add(p.id)})}
 if(!Array.isArray(S.rooms))S.rooms=defaultRooms();
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
 const kc=n=>(+n||0).toLocaleString('cs-CZ').replace(/\s/g,',')+' Kč';
@@ -180,6 +180,11 @@ function box(g,w,h,d,c,x=0,y=0,z=0,o){const m=new THREE.Mesh(new THREE.BoxGeomet
  m.position.set(x,y+h/2,z);m.castShadow=m.receiveShadow=true;g.add(m);return m}
 function cyl(g,r,h,c,x,y,z,rx=0){const m=new THREE.Mesh(new THREE.CylinderGeometry(r,r,h,24),new THREE.MeshStandardMaterial({color:c,roughness:.5}));
  m.position.set(x,y,z);m.rotation.x=rx;m.castShadow=true;g.add(m);return m}
+function cone(g,rt,rb,h,c,x,y,z,o){const m=new THREE.Mesh(new THREE.CylinderGeometry(rt,rb,h,24),new THREE.MeshStandardMaterial({color:c,roughness:.5,...o}));m.position.set(x,y+h/2,z);m.castShadow=true;g.add(m);return m}
+function ball(g,r,c,x,y,z){const m=new THREE.Mesh(new THREE.SphereGeometry(r,12,10),new THREE.MeshStandardMaterial({color:c,roughness:.8}));m.position.set(x,y,z);m.castShadow=true;g.add(m);return m}
+// kitchen counter add-ons: sink and/or cooktop on top (p.kit={sink,stove})
+function kitTop(g,k,y,w){if(!k)return;if(k.sink){box(g,.5,.02,.38,'#b8bcbd',-w*.25,y,.02,{metalness:.6,roughness:.3});cyl(g,.022,.28,'#b8bcbd',-w*.25,y+.14,-.2);box(g,.03,.03,.16,'#b8bcbd',-w*.25,y+.26,-.13)}
+ if(k.stove){box(g,.58,.015,.5,'#1f1f1f',w*.25,y,0,{roughness:.2});[[-.13,-.11],[.13,-.11],[-.13,.11],[.13,.11]].forEach(([x,z])=>cyl(g,.08,.01,'#555',w*.25+x,y+.02,z))}}
 const SHAPE={
  '🛋️':g=>{box(g,2,.22,.9,'#5f6f5a',0,.1,0);box(g,1.9,.2,.75,'#7f957a',0,.32,.06);box(g,2,.45,.2,'#6b8066',0,.32,-.35);box(g,.18,.32,.9,'#6b8066',-.91,.32,0);box(g,.18,.32,.9,'#6b8066',.91,.32,0);
   [-.88,.88].forEach(x=>[-.38,.38].forEach(z=>box(g,.06,.1,.06,'#3b3228',x,0,z)))},
@@ -201,7 +206,25 @@ const SHAPE={
  '🗄️':g=>{box(g,1.2,2,.6,'#d9c9b0',0,0,0);box(g,.01,1.9,.01,'#8a7a60',0,.05,.31);[-.08,.08].forEach(x=>box(g,.03,.2,.03,'#6e604b',x,1,.31))},
  '🪞':g=>{box(g,1,.75,.45,'#c9b08f',0,0,0);box(g,.6,.8,.03,'#bcd3dc',0,.75,-.2,{roughness:.1})},
  '🍳':g=>{box(g,.6,.9,.6,'#e8e8e4',0,0,0,{roughness:.35});box(g,.6,.02,.6,'#2b2b2b',0,.9,0);[[-.14,-.14],[.14,-.14],[-.14,.14],[.14,.14]].forEach(([x,z])=>cyl(g,.09,.01,'#555',x,.925,z))},
- '🗃️':g=>{box(g,2,.9,.6,'#efe7da',0,0,0);box(g,2.02,.04,.62,'#8f8576',0,.9,0);box(g,2,.7,.35,'#efe7da',0,1.5,-.12)},
+ '🗃️':(g,p)=>{box(g,2,.9,.6,'#efe7da',0,0,0);box(g,2.02,.04,.62,'#8f8576',0,.9,0);box(g,2,.7,.35,'#efe7da',0,1.5,-.12);kitTop(g,p&&p.kit,.94,2)},
+ '🍴':g=>{box(g,1.6,.05,.9,'#a3794f',0,.71,0);[-.72,.72].forEach(x=>[-.38,.38].forEach(z=>box(g,.07,.71,.07,'#7b5a3a',x,0,z)))},
+ '🏝️':(g,p)=>{box(g,1.8,.86,.75,'#efe7da',0,.04,-.08);box(g,1.76,.04,.71,'#7b6a55',0,0,-.08);[-.6,0,.6].forEach(x=>box(g,.56,.7,.01,'#e2d8c8',x,.12,-.46));
+  box(g,1.95,.05,1.05,'#8f8576',0,.9,0);[-.6,0,.6].forEach(x=>{cyl(g,.17,.05,'#2f4a3a',x,.66,.78);cyl(g,.025,.64,'#3b3b3b',x,.32,.78);cyl(g,.15,.015,'#3b3b3b',x,.01,.78);cyl(g,.12,.012,'#3b3b3b',x,.26,.78)});kitTop(g,p&&p.kit,.95,1.95)},
+ '🚪':g=>{box(g,1.2,.1,.58,'#7b6a55',0,0,0);box(g,1.2,2.2,.6,'#efe7da',0,.1,0);box(g,.01,2.15,.01,'#bfb4a2',0,.12,.305);box(g,1.18,.01,.01,'#bfb4a2',0,1.25,.305);[-.06,.06].forEach(x=>{box(g,.025,.35,.03,'#8a7a60',x,.8,.31);box(g,.025,.25,.03,'#8a7a60',x,1.45,.31)});box(g,1.22,.04,.62,'#d9cbb5',0,2.3,0)},
+ '🟤':g=>{cyl(g,.65,.02,'#c48f6a',0,.01,0);cyl(g,.5,.022,'#e8d2b0',0,.012,0);cyl(g,.25,.024,'#b85c44',0,.014,0)},
+ '🟫':g=>{box(g,3,.02,2.2,'#8c6a4f',0,0,0);box(g,2.8,.022,2,'#e8dcc4',0,0,0);box(g,2.2,.024,1.4,'#5f6f5a',0,0,0);box(g,1.4,.026,.7,'#d9b45a',0,0,0)},
+ '🧥':g=>{box(g,1.8,2.2,.65,'#d9c9b0',0,0,0);box(g,.9,2.1,.02,'#c4ab86',-.45,.05,.33);box(g,.9,2.1,.02,'#bcd3dc',.45,.05,.34,{roughness:.1});box(g,1.82,.04,.67,'#8a7a60',0,2.2,0)},
+ '👗':g=>{box(g,1.5,2.1,.6,'#f2ece2',0,0,0);[-.5,0,.5].forEach(x=>{box(g,.48,2,.01,'#e6dccb',x,.05,.305);box(g,.025,.3,.03,'#b8743f',x+(x>0?-.2:.2),.95,.31)});box(g,1.56,.06,.64,'#c48f6a',0,2.1,0)},
+ '🧰':g=>{box(g,1.6,.75,.5,'#a3794f',0,.1,0);[-.75,.75].forEach(x=>box(g,.05,.1,.45,'#5a4632',x,0,0));for(let r=0;r<2;r++)for(let c=0;c<3;c++){box(g,.5,.33,.01,'#8c6440',-.53+c*.53,.13+r*.36,.25);box(g,.12,.025,.03,'#d9b45a',-.53+c*.53,.27+r*.36,.27)}},
+ '🏺':g=>{cone(g,.12,.18,.55,'#c48f6a',0,0,0,{roughness:.4,metalness:.2});cone(g,.08,.12,.25,'#c48f6a',0,.55,0,{roughness:.4,metalness:.2});[[-.04,0],[.05,.03],[0,-.05]].forEach(([x,z],i)=>{cyl(g,.006,.45,'#7a5534',x,1.0,z);ball(g,.05,'#e8d2b0',x,1.24+i*.03,z)})},
+ '💐':g=>{cone(g,.06,.09,.22,'#e8eef0',0,0,0,{roughness:.15,transparent:true,opacity:.8});['#d96a6a','#f2c14e','#e8a0b8','#ffffff','#b86ad9'].forEach((c,i)=>{const a=i*1.25,x=Math.cos(a)*.05,z=Math.sin(a)*.05;cyl(g,.004,.18,'#4f8a3e',x,.3,z);ball(g,.04,c,x,.4,z)})},
+ '🌷':g=>{cone(g,.05,.07,.16,'#2f4a3a',0,0,0,{roughness:.3});cyl(g,.004,.14,'#4f8a3e',0,.22,0);ball(g,.035,'#d96a6a',0,.3,0)},
+ '🗂️':g=>{box(g,.47,1.32,.62,'#9aa3a3',0,0,0,{roughness:.4,metalness:.3});for(let k=0;k<4;k++){box(g,.43,.29,.01,'#b8bcbd',0,.04+k*.32,.31,{metalness:.3});box(g,.14,.03,.03,'#555',0,.24+k*.32,.32)}},
+ '🖥️':g=>{box(g,.22,.015,.16,'#2b2b2b',0,0,0);box(g,.04,.28,.04,'#2b2b2b',0,.015,-.03);box(g,.62,.37,.03,'#1e2124',0,.2,-.02,{roughness:.3});box(g,.58,.33,.01,'#2f4b63',0,.22,0,{emissive:'#0b1622'});box(g,.42,.015,.14,'#3b3b3b',0,0,.2)},
+ '🖨️':g=>{box(g,.45,.2,.38,'#efe7da',0,0,0,{roughness:.4});box(g,.3,.02,.2,'#2b2b2b',0,.2,-.05);box(g,.28,.01,.12,'#ffffff',0,.08,.2)},
+ '🔆':g=>{cyl(g,.08,.02,'#2f4a3a',0,.01,0);cyl(g,.012,.35,'#3b3b3b',0,.19,0);cone(g,.05,.1,.12,'#c48f6a',0,.33,.06,{metalness:.3})},
+ '🗒️':g=>{box(g,1.6,.04,.8,'#7b5a3a',0,.72,0);box(g,.45,.72,.72,'#6a4e38',.55,0,0);box(g,.05,.72,.7,'#6a4e38',-.75,0,0);box(g,1.1,.4,.02,'#6a4e38',-.2,.3,-.36);[0,1,2].forEach(k=>{box(g,.4,.2,.01,'#8c6440',.55,.05+k*.23,.365);box(g,.1,.02,.02,'#d9b45a',.55,.17+k*.23,.37)})},
+ '🫖':g=>{cyl(g,.09,.02,'#2b2b2b',0,.01,0);cone(g,.07,.09,.22,'#e6eaea',0,.02,0,{metalness:.4,roughness:.25});box(g,.03,.14,.03,'#2b2b2b',-.1,.08,0)},
  '🪴':g=>{cyl(g,.18,.35,'#b36b45',0,.17,0);const m=new THREE.Mesh(new THREE.SphereGeometry(.32,12,10),new THREE.MeshStandardMaterial({color:'#4f8a3e',roughness:.9}));m.position.y=.6;m.castShadow=true;g.add(m)},
  '💡':g=>{cyl(g,.12,.03,'#3b3b3b',0,.015,0);cyl(g,.02,1.4,'#3b3b3b',0,.7,0);cyl(g,.18,.25,'#f3e6c8',0,1.45,0)},
  '🛌':g=>{box(g,1,.45,1.9,'#d9c4a3',0,0,0);box(g,.95,.15,1.85,'#f2ece2',0,.45,0);box(g,1,.5,.08,'#a3794f',0,.45,-.95)},
@@ -221,18 +244,39 @@ const SHAPE={
  default:g=>box(g,.7,.5,.7,'#b39a7a',0,.05,0)};
 const furn=new THREE.Group();house.add(furn);
 const meshes=new Map();
-function build(){furn.clear();meshes.clear();for(const p of S.products){const g=new THREE.Group();(SHAPE[p.icon]||SHAPE.default)(g);const pc=p.color&&!p.colors?new THREE.Color(p.color):null;g.traverse(o=>{if(!o.isMesh)return;const k=hex(o.material.color);o.userData.part=k;const c=p.colors&&p.colors[k];
+function build(){relink();furn.clear();meshes.clear();for(const p of S.products){const g=new THREE.Group();(SHAPE[p.icon]||SHAPE.default)(g,p);const pc=p.color&&!p.colors?new THREE.Color(p.color):null;g.traverse(o=>{if(!o.isMesh)return;const k=hex(o.material.color);o.userData.part=k;const c=p.colors&&p.colors[k];
   if(c||pc){o.material=o.material.clone();if(c)o.material.color.set(c);else o.material.color.lerp(pc,.75)}})
  g.userData.p=p;place(g);furn.add(g);meshes.set(p,g)}if(SEL)select(S.products.includes(SEL)?SEL:null)}
-const place=g=>{const p=g.userData.p,k=p.scale||{};g.scale.set(k.x||1,k.y||1,k.z||1);g.position.set(p.gx*SX,0.05,p.gy*SZ);g.rotation.y=-(g.userData.p.rot||0)*Math.PI/180};
+// v6: every item sits exactly on the floor (or on its supporting surface) — bottom of its bbox is snapped to base height
+const FLOOR_Y=0.05;
+const TOP={'🍽️':.75,'🍴':.76,'☕':.45,'💻':.76,'🗒️':.76,'🎛️':.59,'🕯️':.55,'🗃️':.94,'🏝️':.95,'🪞':.75,'🧴':.89,'🚰':.94,'👔':1.15,'🧰':.85,'🗂️':1.32,'🍳':.91,'🧺':.85};
+const STACK=new Set(['🪴','♨️','🖥️','🖨️','🔆','💐','🌷','🫖','💡','🏺']);
+const topOf=q=>(+q.sy||0)+(TOP[q.icon]||0)*((q.scale&&q.scale.y)||1);
+const place=g=>{const p=g.userData.p,k=p.scale||{};g.scale.set(k.x||1,k.y||1,k.z||1);g.rotation.y=-(p.rot||0)*Math.PI/180;g.position.set(p.gx*SX,0,p.gy*SZ);
+ g.updateMatrixWorld(true);const b=new THREE.Box3().setFromObject(g);g.position.y=FLOOR_Y+(+p.sy||0)-(b.min.y-house.position.y);if(!isFinite(g.position.y))g.position.y=FLOOR_Y};
+// footprint of a placed item in house meters
+function fp(g){g.updateMatrixWorld(true);const b=new THREE.Box3().setFromObject(g);return {x0:b.min.x+CX,x1:b.max.x+CX,z0:b.min.z+CZ,z1:b.max.z+CZ}}
+function surfaceAt(p,x,z){if(!STACK.has(p.icon))return null;let best=null;for(const q of S.products){if(q===p||!TOP[q.icon]||q.on===p.id)continue;const g=meshes.get(q);if(!g)continue;const f=fp(g);
+  if(x>f.x0+.04&&x<f.x1-.04&&z>f.z0+.04&&z<f.z1-.04&&(!best||topOf(q)>topOf(best)))best=q}return best}
+function relink(){const ids=new Map(S.products.map(q=>[q.id,q]));for(const p of S.products){if(p.on==null){if(p.sy)delete p.sy;continue}const q=ids.get(p.on);if(!q||!TOP[q.icon]||!STACK.has(p.icon)){delete p.on;delete p.sy}else p.sy=+topOf(q).toFixed(3)}}
+// wall magnet: slide item flush to the nearest wall face (any rotation — uses its real footprint)
+function magnet(p,thr){const g=meshes.get(p);if(!g||p.on!=null||p.icon==='🧶'||p.icon==='🟫'||p.icon==='🟤')return false;const f=fp(g),T=WALL_T/2;let bx=thr,bz=thr,dx=0,dz=0;
+ const W=S.walls.slice();for(let z=0;z<NZ;z++){W.push({x1:0,z1:z,x2:0,z2:z+1},{x1:NX,z1:z,x2:NX,z2:z+1})}for(let x=0;x<NX;x++){W.push({x1:x,z1:0,x2:x+1,z2:0},{x1:x,z1:NZ,x2:x+1,z2:NZ})}
+ const cx=(f.x0+f.x1)/2,cz=(f.z0+f.z1)/2;
+ for(const w of W){if(w.x1===w.x2){const X=w.x1,a=Math.min(w.z1,w.z2),b=Math.max(w.z1,w.z2);if(!(f.z0<b-.02&&f.z1>a+.02))continue;
+   if(cx>X){const d=f.x0-(X+T);if(Math.abs(d)<bx){bx=Math.abs(d);dx=-d}}else{const d=(X-T)-f.x1;if(Math.abs(d)<bx){bx=Math.abs(d);dx=d}}}
+  else{const Z=w.z1,a=Math.min(w.x1,w.x2),b=Math.max(w.x1,w.x2);if(!(f.x0<b-.02&&f.x1>a+.02))continue;
+   if(cz>Z){const d=f.z0-(Z+T);if(Math.abs(d)<bz){bz=Math.abs(d);dz=-d}}else{const d=(Z-T)-f.z1;if(Math.abs(d)<bz){bz=Math.abs(d);dz=d}}}}
+ if(Math.abs(dx)<.001&&Math.abs(dz)<.001)return false;
+ const mv=q=>{q.gx=+((q.gx*SX+dx)/SX).toFixed(3);q.gy=+((q.gy*SZ+dz)/SZ).toFixed(3);place(meshes.get(q))};mv(p);S.products.filter(q=>q.on===p.id).forEach(mv);return true}
 function rebuildAll(){regions();buildStruct();build()}
 
 // undo history (products + walls + rooms)
-const H=[];const snap=()=>JSON.stringify({p:S.products,w:S.walls,r:S.rooms,wc:S.wallColor||null});
+const H=[];const snap=()=>JSON.stringify({p:S.products,w:S.walls,r:S.rooms,wc:S.wallColor||null,s:[NX,NZ]});
 function push(){H.push(snap());if(H.length>20)H.shift();updUndo()}
 const undoBtn=document.getElementById('undoBtn');
 function updUndo(){undoBtn.disabled=!H.length}
-undoBtn.onclick=()=>{if(!H.length)return;const o=JSON.parse(H.pop());S.products=o.p;S.walls=o.w;S.rooms=o.r;if(o.wc)S.wallColor=o.wc;else delete S.wallColor;SEL=null;if(TOOL==='color')syncColor();closeCard();rebuildAll();save();updUndo()};
+undoBtn.onclick=()=>{if(!H.length)return;const o=JSON.parse(H.pop());S.products=o.p;S.walls=o.w;S.rooms=o.r;if(o.s&&(o.s[0]!==NX||o.s[1]!==NZ)){applyDims(o.s[0],o.s[1]);resetCam();updSize()}if(o.wc)S.wallColor=o.wc;else delete S.wallColor;SEL=null;if(TOOL==='color')syncColor();closeCard();rebuildAll();save();updUndo()};
 
 // build mode + tools
 const DRAW=()=>TOOL==='wall'||TOOL==='erase';var BUILD=false,SEL=null,TOOL='move';const buildBtn=document.getElementById('buildBtn'),bar=document.getElementById('buildBar');
@@ -268,6 +312,7 @@ function setTool(t){TOOL=t;document.querySelectorAll('[data-tool]').forEach(b=>b
 document.querySelectorAll('[data-tool]').forEach(b=>b.onclick=()=>setTool(b.dataset.tool));
 function rotSel(){if(!SEL){document.getElementById('tip').textContent='הקישו קודם על רהיט ואז 🔄';return}push();SEL.rot=((SEL.rot||0)+90)%360;place(meshes.get(SEL));save();updUndo&&updUndo()}
 document.getElementById('rotBtn').onclick=rotSel;
+$('magBtn').onclick=()=>{if(!SEL)return;const b=snap();if(magnet(SEL,1.2)){H.push(b);if(H.length>20)H.shift();save();updUndo();$('tip').textContent='🧲 הוצמד לקיר'}else $('tip').textContent=SEL.on!=null?'פריט על משטח — לא מוצמד לקיר':'אין קיר קרוב (עד 1.2 מ׳)'};
 $('selScale').onclick=()=>setTool(TOOL==='scale'?'move':'scale');$('selClose').onclick=()=>{select(null);if(TOOL==='scale')setTool('move')};
 function setBuild(on){BUILD=on;buildStruct();buildBtn.classList.toggle('on',on);bar.classList.toggle('hidden',!on);grid.visible=on;closeCard();
  if(!on){select(null);clearPrev()}setTool('move');updUndo()}
@@ -299,14 +344,18 @@ cv.addEventListener('pointerdown',e=>{pts++;if(pts>1){if(drag){drag=null}ctl.ena
   if(TOOL==='wall'){wd={a:snapPt(f),segs:[],before:snap()}}
   else{const p=pick(e);if(p){ctl.enabled=true;askDelete(p);return}wd={erased:0,before:snap()};eraseAt(f)}
   return}
- if(down)down.wasSel=SEL;if(BUILD&&down.p&&(TOOL==='color'||TOOL==='scale')){select(down.p)}else if(BUILD&&down.p){const f=floorPt(e);if(f){select(down.p);drag={p:down.p,ox:down.p.gx*SX-f.x,oz:down.p.gy*SZ-f.z,before:snap(),moved:false};ctl.enabled=false;cv.setPointerCapture(e.pointerId)}}},{capture:true});
+ if(down)down.wasSel=SEL;if(BUILD&&down.p&&(TOOL==='color'||TOOL==='scale')){select(down.p)}else if(BUILD&&down.p){const f=floorPt(e);if(f){select(down.p);drag={p:down.p,ox:down.p.gx*SX-f.x,oz:down.p.gy*SZ-f.z,before:snap(),moved:false,kids:S.products.filter(q=>q.on===down.p.id).map(q=>[q,q.gx*SX-down.p.gx*SX,q.gy*SZ-down.p.gy*SZ])};if(STACK.has(down.p.icon)){drag.ox=drag.oz=0}ctl.enabled=false;cv.setPointerCapture(e.pointerId)}}},{capture:true});
 function eraseAt(f){const w=nearestWall(f);if(w){S.walls=S.walls.filter(q=>q!==w);wd.erased++;regions();buildStruct()}}
 cv.addEventListener('pointermove',e=>{
  if(wd){const f=floorPt(e);if(!f)return;if(TOOL==='wall'){wd.segs=segLine(wd.a,snapPt(f));showPrev(wd.segs,'#2f7a4a')}else eraseAt(f);return}
  if(!drag)return;const f=floorPt(e);if(!f)return;
  const sn=v=>Math.round(v*10)/10,cl=(v,a,b)=>Math.max(a,Math.min(b,v));
- const x=cl(sn(f.x+drag.ox),.3,NX-.3),z=cl(sn(f.z+drag.oz),.3,NZ-.3);
- drag.p.gx=+(x/SX).toFixed(3);drag.p.gy=+(z/SZ).toFixed(3);drag.moved=true;place(meshes.get(drag.p))});
+ let fx=f.x,fz=f.z;
+ if(STACK.has(drag.p.icon)){const own=meshes.get(drag.p);const hs=rc.intersectObjects(furn.children.filter(o=>o!==own),true);for(const h of hs){let o=h.object;while(o&&!o.userData.p)o=o.parent;if(o&&TOP[o.userData.p.icon]){fx=h.point.x+CX;fz=h.point.z+CZ;break}}}
+ const st=STACK.has(drag.p.icon),x=cl(st?Math.round((fx+drag.ox)*100)/100:sn(fx+drag.ox),.3,NX-.3),z=cl(st?Math.round((fz+drag.oz)*100)/100:sn(fz+drag.oz),.3,NZ-.3);
+ drag.p.gx=+(x/SX).toFixed(3);drag.p.gy=+(z/SZ).toFixed(3);drag.moved=true;
+ const s=surfaceAt(drag.p,x,z);if(s){drag.p.on=s.id;drag.p.sy=+topOf(s).toFixed(3)}else{delete drag.p.on;delete drag.p.sy}
+ place(meshes.get(drag.p));drag.kids.forEach(([q,ox,oz])=>{q.gx=+((x+ox)/SX).toFixed(3);q.gy=+((z+oz)/SZ).toFixed(3);place(meshes.get(q))})});
 function up(e){pts=Math.max(0,pts-1);if(BUILD&&DRAW())ctl.enabled=true;
  // wall tool: a plain tap (no stroke) leaves wall drawing but stays in design mode
  const tap=down&&Math.hypot(e.clientX-down.x,e.clientY-down.y)<8;
@@ -316,7 +365,7 @@ function up(e){pts=Math.max(0,pts-1);if(BUILD&&DRAW())ctl.enabled=true;
   else if(TOOL==='erase'&&d.erased){H.push(d.before);if(H.length>20)H.shift();rebuildAll();save()}
   updUndo();down=null;return}
  if(drag){const d=drag;drag=null;ctl.enabled=true;
-  if(d.moved){H.push(d.before);if(H.length>20)H.shift();const r=roomAtM(d.p.gx*SX,d.p.gy*SZ);if(r)d.p.room=r.id;save();updUndo()}}
+  if(d.moved){H.push(d.before);if(H.length>20)H.shift();magnet(d.p,.22);place(meshes.get(d.p));const r=roomAtM(d.p.gx*SX,d.p.gy*SZ);if(r)d.p.room=r.id;save();updUndo()}}
  if(down&&Math.hypot(e.clientX-down.x,e.clientY-down.y)<8){
   if(down.p){if(!BUILD)openCard(down.p);else if(TOOL==='move'&&down.wasSel===down.p)rotSel();else select(down.p)}else{select(null);closeCard()}}
  down=null}
@@ -343,25 +392,26 @@ SK.forEach(([id,a])=>{const el=$(id);el.addEventListener('input',e=>{if(!SEL)ret
 $('scReset').onclick=()=>{if(SEL&&SEL.scale){push();delete SEL.scale;place(meshes.get(SEL));save();syncScale()}};
 // ---- furniture shop (v1): tap item → add form prefilled → placed in matching room ----
 const SHOP=[
- {id:'bed',name:'חדר שינה',ic:'🛏️',items:[['מיטה זוגית','🛏️',14900],['מיטת יחיד','🛌',5900],['ארון בגדים','🗄️',8900],['שידת איפור','🪞',4200],['מנורה עומדת','💡',1290],['שידת לילה','🕯️',1990],['שידת מגירות','👔',5400]]},
- {id:'kitchen',name:'מטבח',ic:'🍳',items:[['מקרר','🧊',15490],['כיריים ותנור','🍳',11900],['שולחן אוכל','🍽️',6200],['כיסא','🪑',1490],['מזנון מטבח','🗃️',9900],['כיור מטבח','🚰',7400],['כיסא בר','🍷',1690],['מיקרוגל','♨️',2490]]},
- {id:'living',name:'סלון',ic:'🛋️',items:[['ספה','🛋️',18500],['כורסה','🛋',6900],['טלוויזיה','📺',12990],['עציץ','🪴',690],['מנורה עומדת','💡',1290],['שולחן קפה','☕',3900],['ספרייה','📚',4600],['שטיח','🧶',2900],['מזנון טלוויזיה','🎛️',5900]]},
+ {id:'bed',name:'חדר שינה',ic:'🛏️',items:[['מיטה זוגית','🛏️',14900],['מיטת יחיד','🛌',5900],['ארון בגדים','🗄️',8900],['שידת איפור','🪞',4200],['מנורה עומדת','💡',1290],['שידת לילה','🕯️',1990],['שידת מגירות','👔',5400],['ארון הזזה','🧥',11900],['ארון 3 דלתות','👗',9400],['שידה רחבה','🧰',4900],['שטיח קטן','🟤',990]]},
+ {id:'kitchen',name:'מטבח',ic:'🍳',items:[['מקרר','🧊',15490],['כיריים ותנור','🍳',11900],['שולחן אוכל','🍽️',6200],['כיסא','🪑',1490],['מזנון מטבח','🗃️',9900],['כיור מטבח','🚰',7400],['כיסא בר','🍷',1690],['מיקרוגל','♨️',2490],['שולחן אוכל (בלי כסאות)','🍴',4900],['אי מטבח + כסאות בר','🏝️',16900],['אי מטבח עם כיור','🏝️',19900,{sink:1}],['ארונות מטבח בגובה','🚪',8900],['מזנון + כיור','🗃️',12400,{sink:1}],['מזנון + כיריים','🗃️',13900,{stove:1}],['מזנון + כיור וכיריים','🗃️',16400,{sink:1,stove:1}],['קומקום','🫖',490]]},
+ {id:'living',name:'סלון',ic:'🛋️',items:[['ספה','🛋️',18500],['כורסה','🛋',6900],['טלוויזיה','📺',12990],['עציץ','🪴',690],['מנורה עומדת','💡',1290],['שולחן קפה','☕',3900],['ספרייה','📚',4600],['שטיח','🧶',2900],['שטיח קטן','🟤',990],['שטיח גדול','🟫',4900],['מזנון טלוויזיה','🎛️',5900],['שידה רחבה','🧰',4900],['אגרטל רצפה','🏺',890],['אגרטל פרחים','💐',390],['אגרטל קטן','🌷',190]]},
+ {id:'office',name:'משרד',ic:'💼',items:[['שולחן עבודה','💻',4900],['שולחן מנהלים','🗒️',8900],['כיסא משרדי','💺',3490],['כיסא אורח','🪑',1490],['ארון תיוק','🗂️',2900],['מחשב ומסך','🖥️',6900],['מדפסת','🖨️',1990],['ספריית משרד','📚',4600],['מנורת שולחן','🔆',590],['עציץ','🪴',690],['שטיח קטן','🟤',990]]},
  {id:'bath',name:'שירותים ואמבטיה',ic:'🛁',items:[['אסלה','🚽',4900],['אמבטיה','🛁',13900],['מקלחון','🚿',9900],['כיור ומראה','🪥',5900],['מכונת כביסה','🧺',9990],['ארון כיור','🧴',6900],['מתלה מגבות','🧻',1290]]},
- {id:'other',name:'אחר',ic:'📦',items:[['עציץ','🪴',690],['כיסא','🪑',1490],['ארגז אחסון','📦',990],['שולחן עבודה','💻',4900],['כיסא משרדי','💺',3490]]}];
-let shopCat=SHOP[0].id;
+ {id:'other',name:'אחר',ic:'📦',items:[['עציץ','🪴',690],['כיסא','🪑',1490],['ארגז אחסון','📦',990],['אגרטל רצפה','🏺',890],['אגרטל פרחים','💐',390],['שטיח גדול','🟫',4900]]}];
+let shopCat=SHOP[0].id,PENDKIT=null;
 const THUMB={};let tR,tS,tC;
-function thumb(ic){if(THUMB[ic])return THUMB[ic];
+function thumb(ic,kit){const key=ic+(kit?JSON.stringify(kit):'');if(THUMB[key])return THUMB[key];
  if(!tR){tR=new THREE.WebGLRenderer({antialias:true,alpha:true,preserveDrawingBuffer:true});tR.setSize(192,192);tR.outputColorSpace=THREE.SRGBColorSpace;tR.toneMapping=THREE.ACESFilmicToneMapping;
   tS=new THREE.Scene();tS.add(new THREE.HemisphereLight('#fff8ec','#cbbfa8',1.1));const d=new THREE.DirectionalLight('#ffe9c8',1.8);d.position.set(3,5,4);tS.add(d);tC=new THREE.PerspectiveCamera(30,1,.1,50)}
- const g=new THREE.Group();(SHAPE[ic]||SHAPE.default)(g);tS.add(g);
+ const g=new THREE.Group();(SHAPE[ic]||SHAPE.default)(g,{kit});tS.add(g);
  const b=new THREE.Box3().setFromObject(g),c=b.getCenter(new THREE.Vector3()),r=b.getSize(new THREE.Vector3()).length()/2;
  tC.position.copy(c).add(new THREE.Vector3(1,.8,1.25).normalize().multiplyScalar(r/Math.sin(THREE.MathUtils.degToRad(15))*1.05));tC.lookAt(c);
- tR.render(tS,tC);THUMB[ic]=tR.domElement.toDataURL('image/png');tS.remove(g);return THUMB[ic]}
+ tR.render(tS,tC);THUMB[key]=tR.domElement.toDataURL('image/png');tS.remove(g);return THUMB[key]}
 function renderShop(){$('shopTabs').innerHTML=SHOP.map(c=>`<button class="stab${c.id===shopCat?' on':''}" data-c="${c.id}"><b>${c.ic}</b>${c.name}</button>`).join('');
- const c=SHOP.find(c=>c.id===shopCat);$('shopGrid').innerHTML=c.items.map(([n,ic,pr],i)=>`<button class="sitem" data-i="${i}"><img class="si" alt="" src="${thumb(ic)}"><b>${n}</b><small>${kc(pr)}</small></button>`).join('');
+ const c=SHOP.find(c=>c.id===shopCat);$('shopGrid').innerHTML=c.items.map(([n,ic,pr,kit],i)=>`<button class="sitem" data-i="${i}"><img class="si" alt="" src="${thumb(ic,kit)}"><b>${n}</b><small>${kc(pr)}</small></button>`).join('');
  $('shopTabs').querySelectorAll('.stab').forEach(b=>b.onclick=()=>{shopCat=b.dataset.c;renderShop()});
- $('shopGrid').querySelectorAll('.sitem').forEach(b=>b.onclick=()=>{const [n,ic,pr]=c.items[+b.dataset.i];$('shopSheet').classList.add('hidden');
-  form.reset();form.name.value=n;form.price.value=pr;form.icon.value=ic;form.date.value=new Date().toISOString().slice(0,10);
+ $('shopGrid').querySelectorAll('.sitem').forEach(b=>b.onclick=()=>{const [n,ic,pr,kit]=c.items[+b.dataset.i];$('shopSheet').classList.add('hidden');
+  form.reset();PENDKIT=kit?{...kit}:null;form.name.value=n;form.price.value=pr;form.icon.value=ic;form.date.value=new Date().toISOString().slice(0,10);
   const rm=ROOMS_NOW.find(r=>r.id===c.id)||ROOMS_NOW.find(r=>r.name===c.name);if(rm)form.room.value=rm.id;$('formTitle').textContent='הוספה מהחנות';$('formSheet').classList.remove('hidden')})}
 $('shopBtn').onclick=()=>{renderShop();$('shopSheet').classList.remove('hidden')};
 $('closeShop').onclick=()=>$('shopSheet').classList.add('hidden');
@@ -378,20 +428,27 @@ function regrid(ow,od,w,d){const K=new Set();let W=[];
  for(let x=0;x<w;x++){add({x1:x,z1:0,x2:x+1,z2:0});add({x1:x,z1:d,x2:x+1,z2:d})}
  for(let z=0;z<d;z++){add({x1:0,z1:z,x2:0,z2:z+1});add({x1:w,z1:z,x2:w,z2:z+1})}
  S.walls=W}
-function fits(w,d){const inn=q=>{const v=q.x1===q.x2;return v?(q.x1===NX):(q.z1===NZ)};return S.walls.every(q=>inn(q)||(Math.max(q.x1,q.x2)<=w&&Math.max(q.z1,q.z2)<=d))&&S.products.every(p=>p.gx*SX<=w-.3&&p.gy*SZ<=d-.3)}
-function updSize(){$('sizeW').textContent=NX;$('sizeD').textContent=NZ;$('sizeArea').textContent=NX*NZ;$('wMinus').disabled=!(NX>10&&fits(NX-2,NZ));$('dMinus').disabled=!(NZ>8&&fits(NX,NZ-2));$('wPlus').disabled=NX>=20;$('dPlus').disabled=NZ>=18}
-function setSize(w,d){if(w<10||d<8||w>20||d>18||!fits(w,d))return;if(!S.walls.length){S.walls=defaultWalls();regions()}regrid(NX,NZ,w,d);NX=w;NZ=d;CX=NX/2;CZ=NZ/2;S.size={w,d};house.position.set(-CX,0,-CZ);makeGrid();grid.visible=BUILD;rebuildAll();applyBackdrop(S.setting);resetCam();save();updSize()}
+function fitsOld(w,d){const inn=q=>{const v=q.x1===q.x2;return v?(q.x1===NX):(q.z1===NZ)};return S.walls.every(q=>inn(q)||(Math.max(q.x1,q.x2)<=w&&Math.max(q.z1,q.z2)<=d))&&S.products.every(p=>p.gx*SX<=w-.3&&p.gy*SZ<=d-.3)}
+function updSize(){$('sizeW').textContent=NX;$('sizeD').textContent=NZ;$('sizeArea').textContent=NX*NZ;$('wMinus').disabled=NX<=10;$('dMinus').disabled=NZ<=8;$('wPlus').disabled=NX>=20;$('dPlus').disabled=NZ>=18}
+function applyDims(w,d){NX=w;NZ=d;CX=NX/2;CZ=NZ/2;S.size={w,d};house.position.set(-CX,0,-CZ);makeGrid();grid.visible=BUILD;clearPrev();applyBackdrop(S.setting)}
+function setSize(w,d){if(w<10||d<8||w>20||d>18||(w===NX&&d===NZ))return;push();if(!S.walls.length){S.walls=defaultWalls();regions()}regrid(NX,NZ,w,d);
+ // keep room anchors inside the new footprint so rooms keep their name + floor colour
+ S.rooms.forEach(r=>{r.ax=Math.min(r.ax,w-.5);r.az=Math.min(r.az,d-.5)});
+ applyDims(w,d);
+ // products outside the new bounds are pulled back onto the remaining floor
+ S.products.forEach(p=>{p.gx=+(Math.max(.3,Math.min(NX-.3,p.gx*SX))/SX).toFixed(3);p.gy=+(Math.max(.3,Math.min(NZ-.3,p.gy*SZ))/SZ).toFixed(3)});
+ rebuildAll();S.products.forEach(p=>{const r=roomAtM(p.gx*SX,p.gy*SZ);if(r)p.room=r.id});resetCam();save();updSize()}
 $('wPlus').onclick=()=>setSize(NX+2,NZ);$('wMinus').onclick=()=>setSize(NX-2,NZ);$('dPlus').onclick=()=>setSize(NX,NZ+2);$('dMinus').onclick=()=>setSize(NX,NZ-2);
 $('sizeBtn').onclick=()=>{updSize();$('sizeSheet').classList.remove('hidden')};$('closeSize').onclick=()=>$('sizeSheet').classList.add('hidden');
 $('sizeSheet').onclick=e=>{if(e.target.id==='sizeSheet')$('sizeSheet').classList.add('hidden')};
 // price card
 const card=document.getElementById('card');
-function openCard(p){card.innerHTML=`<button class="icon x">✕</button><div class="ce">${p.icon||'📦'}</div><b>${esc(p.name)}</b><div class="p">${kc(p.price)}</div><div class="d">${[p.date?new Date(p.date).toLocaleDateString('he-IL'):'',esc(roomName(p))].filter(Boolean).join(' · ')}</div><button class="edit mini2" aria-label="עריכה">✏️ עריכה</button>`;
+function openCard(p){card.innerHTML=`<button class="icon x">✕</button><div class="ce">${p.icon||'📦'}</div><b>${esc(p.name)}</b><div class="p">${kc(p.price)}</div><div class="d">${[p.date?new Date(p.date).toLocaleDateString('he-IL'):'',esc(roomName(p)),p.kit?[p.kit.sink?'כיור':'',p.kit.stove?'כיריים':''].filter(Boolean).join(' + '):'',p.on!=null?'על '+esc((S.products.find(q=>q.id===p.on)||{}).name||''):''].filter(Boolean).join(' · ')}</div><button class="edit mini2" aria-label="עריכה">✏️ עריכה</button>`;
  card.classList.remove('hidden');card.querySelector('.x').onclick=closeCard;
  card.querySelector('.edit').onclick=()=>{closeCard();openEdit(p)}}
 // edit sheet: name / price / purchase date / delete
-let EDIT=null;function openEdit(p){EDIT=p;const f=$('editForm');$('editIcon').textContent=p.icon||'📦';$('editMeta').textContent=kc(p.price)+' · '+roomName(p);f.name.value=p.name||'';f.price.value=p.price||0;f.date.value=p.date||'';$('editSheet').classList.remove('hidden')}
-$('editForm').onsubmit=e=>{e.preventDefault();const p=EDIT,f=$('editForm');if(!p)return;push();p.name=f.name.value.trim()||p.name;p.price=+f.price.value||0;p.date=f.date.value;save();build();$('editSheet').classList.add('hidden');if(TOOL==='color')syncColor()};
+const KIT_ICONS=new Set(['🗃️','🏝️']);let EDIT=null;function openEdit(p){EDIT=p;const f=$('editForm');$('editIcon').textContent=p.icon||'📦';$('editMeta').textContent=kc(p.price)+' · '+roomName(p);f.name.value=p.name||'';f.price.value=p.price||0;f.date.value=p.date||'';const kr=KIT_ICONS.has(p.icon);$('kitRow').classList.toggle('hidden',!kr);f.ksink.checked=!!(p.kit&&p.kit.sink);f.kstove.checked=!!(p.kit&&p.kit.stove);$('editSheet').classList.remove('hidden')}
+$('editForm').onsubmit=e=>{e.preventDefault();const p=EDIT,f=$('editForm');if(!p)return;push();p.name=f.name.value.trim()||p.name;p.price=+f.price.value||0;p.date=f.date.value;if(KIT_ICONS.has(p.icon)){const k={};if(f.ksink.checked)k.sink=1;if(f.kstove.checked)k.stove=1;if(k.sink||k.stove)p.kit=k;else delete p.kit}save();build();$('editSheet').classList.add('hidden');if(TOOL==='color')syncColor()};
 $('editCancel').onclick=()=>$('editSheet').classList.add('hidden');
 $('editDel').onclick=()=>{const p=EDIT;$('editSheet').classList.add('hidden');if(p)askDelete(p)};
 $('editSheet').onclick=e=>{if(e.target.id==='editSheet')$('editSheet').classList.add('hidden')};
@@ -410,12 +467,34 @@ sheet.onclick=e=>{if(e.target===sheet)sheet.classList.add('hidden')};
 // add product
 const form=document.getElementById('addForm');
 function fillRoomSel(){const sel=document.getElementById('roomSel');sel.innerHTML=ROOMS_NOW.map(r=>`<option value="${r.id}">${esc(r.name)}</option>`).join('')||'<option value="">—</option>'}
-document.getElementById('addBtn').onclick=()=>{form.reset();$('formTitle').textContent='מוצר חדש';form.date.value=new Date().toISOString().slice(0,10);document.getElementById('formSheet').classList.remove('hidden')};
+document.getElementById('addBtn').onclick=()=>{form.reset();PENDKIT=null;$('formTitle').textContent='מוצר חדש';form.date.value=new Date().toISOString().slice(0,10);document.getElementById('formSheet').classList.remove('hidden')};
 document.getElementById('cancelAdd').onclick=()=>document.getElementById('formSheet').classList.add('hidden');
 form.onsubmit=e=>{e.preventDefault();const r=ROOMS_NOW.find(x=>x.id===form.room.value)||{id:'',cx:CX,cz:CZ};push();
- S.products.push({id:Date.now(),name:form.name.value.trim()||'מוצר',price:+form.price.value||0,date:form.date.value,room:r.id,icon:form.icon.value,
+ S.products.push({id:Date.now(),name:form.name.value.trim()||'מוצר',price:+form.price.value||0,date:form.date.value,room:r.id,icon:form.icon.value,...(PENDKIT&&KIT_ICONS.has(form.icon.value)?{kit:PENDKIT}:{}),
   gx:+(r.cx/SX).toFixed(3),gy:+(r.cz/SZ).toFixed(3)});save();build();renderList();document.getElementById('formSheet').classList.add('hidden')};
 try{rebuildAll()}catch(e){console.error(e);S.walls=defaultWalls();S.rooms=defaultRooms();try{rebuildAll()}catch(e2){S.products=seedP();rebuildAll()}}
 save();setTool('move');updUndo();window.__homieOk=1;
 
 applyBackdrop(S.setting);document.getElementById('setBtn').onclick=()=>{S.setting=S.setting==='building'?'ground':'building';applyBackdrop(S.setting);save()};
+
+// ---- v6: desktop keyboard navigation ----
+// Arrows / WASD — move the view · Q/E — orbit · +/− — zoom · R — reset view · Shift+Arrows (design, item selected) — nudge item 10cm
+const KEYS=new Set(),KC={ArrowUp:'f',KeyW:'f',ArrowDown:'b',KeyS:'b',ArrowLeft:'l',KeyA:'l',ArrowRight:'r',KeyD:'r',KeyQ:'ql',KeyE:'qr',Equal:'zi',NumpadAdd:'zi',Minus:'zo',NumpadSubtract:'zo'};
+const typing=e=>/INPUT|SELECT|TEXTAREA/.test((e.target&&e.target.tagName)||'')||!!document.querySelector('.sheet:not(.hidden)');
+addEventListener('keydown',e=>{if(typing(e)||e.ctrlKey||e.metaKey||e.altKey)return;
+ if(e.code==='KeyR'){resetCam();return}
+ if(e.shiftKey&&BUILD&&SEL&&e.code.startsWith('Arrow')){e.preventDefault();const f=ctl.target.clone().sub(cam.position);f.y=0;f.normalize();const r=new THREE.Vector3(-f.z,0,f.x);
+  const v=e.code==='ArrowUp'?f:e.code==='ArrowDown'?f.clone().negate():e.code==='ArrowLeft'?r.clone().negate():r;const ax=Math.abs(v.x)>Math.abs(v.z)?[Math.sign(v.x)*.1,0]:[0,Math.sign(v.z)*.1];
+  if(!e.repeat)push();const mv=q=>{q.gx=+(Math.max(.3,Math.min(NX-.3,q.gx*SX+ax[0]))/SX).toFixed(3);q.gy=+(Math.max(.3,Math.min(NZ-.3,q.gy*SZ+ax[1]))/SZ).toFixed(3);place(meshes.get(q))};
+  mv(SEL);S.products.filter(q=>q.on===SEL.id).forEach(mv);const s=surfaceAt(SEL,SEL.gx*SX,SEL.gy*SZ);if(STACK.has(SEL.icon)){if(s){SEL.on=s.id;SEL.sy=+topOf(s).toFixed(3)}else{delete SEL.on;delete SEL.sy}place(meshes.get(SEL))}save();return}
+ const k=KC[e.code];if(k){KEYS.add(k);e.preventDefault()}});
+addEventListener('keyup',e=>{const k=KC[e.code];if(k)KEYS.delete(k)});addEventListener('blur',()=>KEYS.clear());
+let lastKT=0;TICK.push(t=>{const dt=Math.min(.05,lastKT?(t-lastKT)/1000:0);lastKT=t;if(!KEYS.size||!dt)return;
+ const off=cam.position.clone().sub(ctl.target),dist=off.length(),f=off.clone().negate();f.y=0;f.normalize();const r=new THREE.Vector3(-f.z,0,f.x),mv=new THREE.Vector3(),sp=Math.max(2,dist*.55)*dt;
+ if(KEYS.has('f'))mv.add(f);if(KEYS.has('b'))mv.sub(f);if(KEYS.has('r'))mv.add(r);if(KEYS.has('l'))mv.sub(r);
+ if(mv.lengthSq()){mv.normalize().multiplyScalar(sp);const lim=v=>v;ctl.target.add(mv);ctl.target.x=Math.max(-CX-3,Math.min(CX+3,ctl.target.x));ctl.target.z=Math.max(-CZ-3,Math.min(CZ+3,ctl.target.z))}
+ if(KEYS.has('ql')||KEYS.has('qr'))off.applyAxisAngle(new THREE.Vector3(0,1,0),(KEYS.has('ql')?1:-1)*1.4*dt);
+ if(KEYS.has('zi')||KEYS.has('zo')){const nd=Math.max(ctl.minDistance,Math.min(ctl.maxDistance,dist*(KEYS.has('zi')?1-1.2*dt:1+1.2*dt)));off.setLength(nd)}
+ cam.position.copy(ctl.target).add(off)});
+if(matchMedia('(pointer:fine)').matches){const h=$('hint');h.textContent='גרירה — סיבוב · גלגלת — זום · קליק ימני — הזזה · חיצים/WASD — תזוזה · Q/E — סיבוב · +/− — זום · R — איפוס · Shift+חיצים — הזזת רהיט';}
+window.__homie={S,get NX(){return NX},get NZ(){return NZ},setSize,meshes,struct,house,build,magnet,surfaceAt,fp,select,setBuild,cam,ctl,undo:()=>undoBtn.onclick(),place,openCard,openEdit,FLOOR_Y};
