@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="theme-color" content="#2f4a3a">
 <title>Homie</title>
-<link rel="stylesheet" href="styles.css?v=ux8">
+<link rel="stylesheet" href="styles.css?v=ux8b">
 <script type="importmap">{"imports":{"three":"./vendor/three.module.js","three/addons/":"./vendor/addons/"}}</script>
 <script>window.__homieFail=function(m){if(document.getElementById('loadErr'))return;var d=document.createElement('div');d.id='loadErr';d.style.cssText='position:fixed;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;text-align:center;padding:24px;font:600 17px system-ui;color:#5a4632;z-index:999;pointer-events:auto';d.innerHTML='<div>לא הצלחנו לטעון את הבית — נסו לרענן</div><button onclick="location.reload()" style="padding:10px 20px;border-radius:12px;border:0;background:#5a4632;color:#fff;font:600 15px system-ui">רענון</button><small style="opacity:.5;font-weight:400">'+(m||'')+'</small>';document.body.appendChild(d)};
 window.addEventListener('error',function(e){if(!window.__homieOk)__homieFail(e.message)},true);
@@ -26,13 +26,16 @@ setTimeout(function(){if(!window.__homieOk)__homieFail('timeout')},12000);</scri
   <button id="addBtn" class="pill" style="margin-top:12px;width:100%">＋ הוסף מוצר</button></div></div>
 <div id="buildBar" class="bbar hidden">
  <div id="colorPanel" class="cpanel hidden">
-  <div class="crow" id="cProd"><span id="cProdName">בחרו רהיט</span><input type="color" id="prodColor"><small class="lbl">שנה הכל</small><button class="mini" id="prodReset">מקורי</button></div>
+  <div class="crow" id="cProd"><span id="cProdName">בחרו רהיט</span><label class="cust" title="צבע מותאם"><input type="color" id="prodColor"><small class="lbl">מותאם</small></label><button class="mini" id="prodReset">מקורי</button></div>
   <div class="parts" id="cParts"></div>
+  <div class="swg" id="pSw"></div>
  </div>
  <div id="floorPanel" class="cpanel hidden">
-  <div class="crow"><span>רצפה</span><select id="floorRoom"></select><input type="color" id="floorColor" title="גוון"><button class="mini" id="floorAll">לכל הבית</button></div>
+  <div class="crow"><span>רצפה</span><select id="floorRoom"></select><label class="cust" title="גוון מותאם"><input type="color" id="floorColor"><small class="lbl">מותאם</small></label><button class="mini" id="floorAll">לכל הבית</button></div>
+  <div class="swg" id="fSw"></div>
   <div class="ftypes" id="fTypes"></div>
-  <div class="crow"><span>קירות</span><input type="color" id="wallColor"><button class="mini" id="wallReset">מקורי</button></div>
+  <div class="crow"><span>קירות</span><label class="cust" title="צבע מותאם"><input type="color" id="wallColor"><small class="lbl">מותאם</small></label><button class="mini" id="wallReset">מקורי</button></div>
+  <div class="swg" id="wSw"></div>
  </div>
  <div id="scalePanel" class="cpanel hidden">
   <div class="crow"><span id="sProd">הקישו על רהיט</span><button class="mini" id="scReset">מקורי</button></div>
@@ -65,7 +68,7 @@ setTimeout(function(){if(!window.__homieOk)__homieFail('timeout')},12000);</scri
  <div class="sheet-h"><h2 id="formTitle">מוצר חדש</h2><button type="button" class="icon" id="cancelAdd">✕</button></div>
  <label>שם<input name="name" required></label><label>מחיר (Kč)<input name="price" type="number" inputmode="numeric" required></label>
  <label>תאריך<input name="date" type="date"></label><label>חדר<select name="room" id="roomSel"></select></label>
- <label>סוג<select name="icon"><option>🛋️</option><option>📺</option><option>🧊</option><option>🍽️</option><option>🛏️</option><option>🧺</option><option>🛋</option><option>🪑</option><option>🗄️</option><option>🪞</option><option>🛌</option><option>💡</option><option>🪴</option><option>🍳</option><option>🗃️</option><option>🚽</option><option>🛁</option><option>🚿</option><option>🪥</option><option>☕</option><option>📚</option><option>🧶</option><option>🎛️</option><option>🕯️</option><option>👔</option><option>🚰</option><option>🍷</option><option>♨️</option><option>🧴</option><option>🧻</option><option>💻</option><option>💺</option><option>📦</option><option>🍴</option><option>🏝️</option><option>🚪</option><option>🟤</option><option>🟫</option><option>🧥</option><option>👗</option><option>🧰</option><option>🏺</option><option>💐</option><option>🌷</option><option>🗂️</option><option>🖥️</option><option>🖨️</option><option>🔆</option><option>🗒️</option><option>🫖</option><option>🗳️</option><option>⚪</option><option>🖼️</option><option>🎨</option><option>🍵</option><option>🌿</option><option>🌵</option><option>🌱</option><option>🌳</option><option>🟩</option><option>🔳</option><option>🗑️</option><option>🚮</option><option>🎩</option><option>🪝</option><option>🏮</option><option>🕰️</option><option>🪩</option></select></label>
+ <label>סוג<select name="icon"><option>🛋️</option><option>🎀</option><option>🟪</option><option>🧣</option><option>👕</option><option>📺</option><option>🧊</option><option>🍽️</option><option>🛏️</option><option>🧺</option><option>🛋</option><option>🪑</option><option>🗄️</option><option>🪞</option><option>🛌</option><option>💡</option><option>🪴</option><option>🍳</option><option>🗃️</option><option>🚽</option><option>🛁</option><option>🚿</option><option>🪥</option><option>☕</option><option>📚</option><option>🧶</option><option>🎛️</option><option>🕯️</option><option>👔</option><option>🚰</option><option>🍷</option><option>♨️</option><option>🧴</option><option>🧻</option><option>💻</option><option>💺</option><option>📦</option><option>🍴</option><option>🏝️</option><option>🚪</option><option>🟤</option><option>🟫</option><option>🧥</option><option>👗</option><option>🧰</option><option>🏺</option><option>💐</option><option>🌷</option><option>🗂️</option><option>🖥️</option><option>🖨️</option><option>🔆</option><option>🗒️</option><option>🫖</option><option>🗳️</option><option>⚪</option><option>🖼️</option><option>🎨</option><option>🍵</option><option>🌿</option><option>🌵</option><option>🌱</option><option>🌳</option><option>🟩</option><option>🔳</option><option>🗑️</option><option>🚮</option><option>🎩</option><option>🪝</option><option>🏮</option><option>🕰️</option><option>🪩</option></select></label>
  <button class="pill" style="width:100%;margin-top:10px">שמור</button></form></div></div>
-<script type="module" src="app.js?v=ux8"></script>
+<script type="module" src="app.js?v=ux8b"></script>
 </body></html>
