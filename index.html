@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="theme-color" content="#2f4a3a">
 <title>Homie</title>
-<link rel="stylesheet" href="styles.css?v=ux6">
+<link rel="stylesheet" href="styles.css?v=ux7b">
 <script type="importmap">{"imports":{"three":"./vendor/three.module.js","three/addons/":"./vendor/addons/"}}</script>
 <script>window.__homieFail=function(m){if(document.getElementById('loadErr'))return;var d=document.createElement('div');d.id='loadErr';d.style.cssText='position:fixed;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;text-align:center;padding:24px;font:600 17px system-ui;color:#5a4632;z-index:999;pointer-events:auto';d.innerHTML='<div>לא הצלחנו לטעון את הבית — נסו לרענן</div><button onclick="location.reload()" style="padding:10px 20px;border-radius:12px;border:0;background:#5a4632;color:#fff;font:600 15px system-ui">רענון</button><small style="opacity:.5;font-weight:400">'+(m||'')+'</small>';document.body.appendChild(d)};
 window.addEventListener('error',function(e){if(!window.__homieOk)__homieFail(e.message)},true);
@@ -28,8 +28,11 @@ setTimeout(function(){if(!window.__homieOk)__homieFail('timeout')},12000);</scri
  <div id="colorPanel" class="cpanel hidden">
   <div class="crow" id="cProd"><span id="cProdName">בחרו רהיט</span><input type="color" id="prodColor"><small class="lbl">שנה הכל</small><button class="mini" id="prodReset">מקורי</button></div>
   <div class="parts" id="cParts"></div>
+ </div>
+ <div id="floorPanel" class="cpanel hidden">
+  <div class="crow"><span>רצפה</span><select id="floorRoom"></select><input type="color" id="floorColor" title="גוון"><button class="mini" id="floorAll">לכל הבית</button></div>
+  <div class="ftypes" id="fTypes"></div>
   <div class="crow"><span>קירות</span><input type="color" id="wallColor"><button class="mini" id="wallReset">מקורי</button></div>
-  <div class="crow"><span>רצפה</span><select id="floorRoom"></select><input type="color" id="floorColor"></div>
  </div>
  <div id="scalePanel" class="cpanel hidden">
   <div class="crow"><span id="sProd">הקישו על רהיט</span><button class="mini" id="scReset">מקורי</button></div>
@@ -39,9 +42,9 @@ setTimeout(function(){if(!window.__homieOk)__homieFail('timeout')},12000);</scri
   <label class="srng"><span>⬆ גובה</span><input type="range" id="scY" min="50" max="250" step="5"><i id="scYV"></i></label>
  </div>
  <span id="tip"></span>
- <div class="tools"><button class="tb" data-tool="move"><b>✥</b>מיקום</button><button class="tb" data-tool="wall"><b>✏️</b>קיר</button><button class="tb" data-tool="erase"><b>🗑️</b>מחק</button><button class="tb" data-tool="color"><b>🎨</b>צבע</button><button id="shopBtn" class="tb shopb"><b><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"><path d="M3.5 9.5 5 4h14l1.5 5.5"/><path d="M3.5 9.5a2.1 2.1 0 0 0 4.2 0 2.1 2.1 0 0 0 4.3 0 2.1 2.1 0 0 0 4.3 0 2.1 2.1 0 0 0 4.2 0"/><path d="M5 11.5V20h14v-8.5"/><path d="M10 20v-4.5h4V20"/></svg></b>חנות</button><button id="sizeBtn" class="tb"><b>📐</b>בית</button><span class="sep"></span><button id="doneBtn" class="tb done"><b>✔</b>סיום</button></div></div>
+ <div class="tools"><button class="tb" data-tool="move"><b>✥</b>מיקום</button><button class="tb" data-tool="wall"><b>✏️</b>קיר</button><button class="tb" data-tool="floor"><b>🟫</b>רצפה</button><button id="shopBtn" class="tb shopb"><b><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"><path d="M3.5 9.5 5 4h14l1.5 5.5"/><path d="M3.5 9.5a2.1 2.1 0 0 0 4.2 0 2.1 2.1 0 0 0 4.3 0 2.1 2.1 0 0 0 4.3 0 2.1 2.1 0 0 0 4.2 0"/><path d="M5 11.5V20h14v-8.5"/><path d="M10 20v-4.5h4V20"/></svg></b>חנות</button><button id="sizeBtn" class="tb"><b>📐</b>בית</button><span class="sep"></span><button id="doneBtn" class="tb done"><b>✔</b>סיום</button></div></div>
 <div id="card" class="card hidden"></div>
-<div id="selCtl" class="selctl hidden"><span id="selName"></span><button id="rotBtn" class="sc"><b>🔄</b>סובב</button><button id="selScale" class="sc"><b>⤢</b>גודל</button><button id="magBtn" class="sc" title="הצמדה לקיר הקרוב"><b>🧲</b>לקיר</button><button id="selClose" class="sc x" aria-label="סגור">✕</button></div>
+<div id="selCtl" class="selctl hidden"><span id="selName"></span><button id="rotBtn" class="sc"><b>🔄</b>סובב</button><button id="selScale" class="sc"><b>⤢</b>גודל</button><button id="magBtn" class="sc" title="הצמדה לקיר הקרוב"><b>🧲</b>לקיר</button><button id="selColor" class="sc"><b>🎨</b>צבע</button><button id="selDel" class="sc del"><b>🗑️</b>מחק</button><button id="selClose" class="sc x" aria-label="סגור">✕</button></div>
 <div id="editSheet" class="sheet hidden"><div class="sheet-in"><form id="editForm">
  <div class="sheet-h"><h2><span id="editIcon"></span> עריכת פריט <small id="editMeta" class="emeta"></small></h2><button type="button" class="icon" id="editCancel">✕</button></div>
  <label>שם<input name="name" required></label><label>מחיר (Kč)<input name="price" type="number" inputmode="numeric"></label><label>תאריך קנייה<input name="date" type="date"></label>
@@ -63,5 +66,5 @@ setTimeout(function(){if(!window.__homieOk)__homieFail('timeout')},12000);</scri
  <label>תאריך<input name="date" type="date"></label><label>חדר<select name="room" id="roomSel"></select></label>
  <label>סוג<select name="icon"><option>🛋️</option><option>📺</option><option>🧊</option><option>🍽️</option><option>🛏️</option><option>🧺</option><option>🛋</option><option>🪑</option><option>🗄️</option><option>🪞</option><option>🛌</option><option>💡</option><option>🪴</option><option>🍳</option><option>🗃️</option><option>🚽</option><option>🛁</option><option>🚿</option><option>🪥</option><option>☕</option><option>📚</option><option>🧶</option><option>🎛️</option><option>🕯️</option><option>👔</option><option>🚰</option><option>🍷</option><option>♨️</option><option>🧴</option><option>🧻</option><option>💻</option><option>💺</option><option>📦</option><option>🍴</option><option>🏝️</option><option>🚪</option><option>🟤</option><option>🟫</option><option>🧥</option><option>👗</option><option>🧰</option><option>🏺</option><option>💐</option><option>🌷</option><option>🗂️</option><option>🖥️</option><option>🖨️</option><option>🔆</option><option>🗒️</option><option>🫖</option></select></label>
  <button class="pill" style="width:100%;margin-top:10px">שמור</button></form></div></div>
-<script type="module" src="app.js?v=ux6"></script>
+<script type="module" src="app.js?v=ux7b"></script>
 </body></html>
